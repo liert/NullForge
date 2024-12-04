@@ -1,0 +1,23 @@
+// Decompiled with: CFR 0.152
+// Class Version: 8
+package com.github.nullforge.Utils;
+
+import com.github.nullforge.Main;
+import org.bukkit.Material;
+import org.bukkit.inventory.ItemStack;
+
+public class ItemString {
+    public static String getString(ItemStack itemStack) {
+        if (itemStack != null && itemStack.getType() != Material.AIR) {
+            return String.format("%sx%d", itemStack.getItemMeta().getDisplayName(), itemStack.getAmount());
+        }
+        return null;
+    }
+
+    public static ItemStack getItem(String s) {
+        String[] strings = s.split("x");
+        String name = strings[0];
+        int amount = Integer.parseInt(strings[1]);
+        return Main.getMMItemManager().getItemStack(name, amount);
+    }
+}

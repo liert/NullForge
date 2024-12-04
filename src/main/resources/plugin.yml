@@ -1,0 +1,19 @@
+name: NullForge
+main: com.github.nullforge.NullForge
+version: 1.0.0
+depend: [NullCore, ProtocolLib, MythicMobs]
+commands:
+  dz:
+    description: none.
+    usage: /<command> ?
+  hc:
+    description: none.
+    usage: /<command> ?
+  fadmin:
+    description: none.
+    usage: /<command> ?
+    permission: nullforge.admin
+permissions:
+  nullforge.admin:
+    description: Allows access to all admin commands
+    default: op
