@@ -22,7 +22,6 @@ import java.util.Random;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -71,17 +70,6 @@ public class Main {
         }
     }
 
-    private boolean DisableListener() {
-        boolean DisableStatus = false;
-        try {
-            HandlerList.unregisterAll((Plugin)this);
-            DisableStatus = true;
-        }
-        catch (Exception exception) {
-            // empty catch block
-        }
-        return DisableStatus;
-    }
 
     private void EnableListener() {
         instance.getCommand("dz").setExecutor(new OnForge());
