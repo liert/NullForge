@@ -53,14 +53,8 @@ public class Main {
             new NameHolder((Plugin) this, "forge").hook();
         }
         // 再次打印一条确认信息
-        Bukkit.getConsoleSender().sendMessage("§a[NullForge] §f插件加载成功！");
-    }
-
-    private void printPluginLoadMessage() {
+        Bukkit.getConsoleSender().sendMessage("§8| §a插件加载成功!");
         Bukkit.getConsoleSender().sendMessage("§8=============================================");
-        Bukkit.getConsoleSender().sendMessage("§8| §aNullForge §8- §fVersion: §b1.0.0 §8|");
-        Bukkit.getConsoleSender().sendMessage("§8| §f插件加载中... §8|");
-        Bukkit.getConsoleSender().sendMessage("§8=============================================\n");
     }
 
     public void stop() {
@@ -80,9 +74,10 @@ public class Main {
     private boolean DisableListener() {
         boolean DisableStatus = false;
         try {
-            HandlerList.unregisterAll((Plugin) this);
+            HandlerList.unregisterAll((Plugin)this);
             DisableStatus = true;
-        } catch (Exception exception) {
+        }
+        catch (Exception exception) {
             // empty catch block
         }
         return DisableStatus;

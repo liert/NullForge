@@ -36,5 +36,6 @@
   draw-not-level: "§c[系统]§a你的等级不足以学习该锻造图纸!"
   draw-disused: "§c[系统]§a该图纸已经废弃,无法使用!"
   draw-must-1: "§c[系统]§a学习的图纸数量必须为1!"
+  draw-no-learn: "§c[系统]§a你还没有学习任何锻造图纸,请先手持锻造图纸右键开始学习后再进行锻造!"
   draw-learned: "§c[系统]§a你已经学会该图纸,无法再次学习"
   draw-learn-succeed: "§c[系统]§a你已经成功的学习了图纸§b§l%draw_name%§a,你可以使用/dz来进行锻造该图纸的装备"

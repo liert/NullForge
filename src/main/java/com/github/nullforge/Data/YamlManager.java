@@ -3,16 +3,14 @@ package com.github.nullforge.Data;
 import com.github.nullforge.Main;
 import com.github.nullforge.Utils.ItemString;
 import java.io.File;
-import java.io.IOException;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -20,6 +18,10 @@ import org.bukkit.inventory.ItemStack;
 
 public class YamlManager
         implements DataManagerImpl {
+
+    // 在类的成员变量处声明一个 Logger 实例
+    private static final Logger logger = LoggerFactory.getLogger(YamlManager.class);
+
     @Override
     public void getPlayerData(Player p) {
         PlayerData pd;
@@ -66,38 +68,22 @@ public class YamlManager
         }
     }
 
-    private String[] listResourcesInJar(String path) {
-        try {
-            // 获取插件的 jar 文件 URL 并去除 "file:" 前缀
-            URL url = getClass().getProtectionDomain().getCodeSource().getLocation();
-            JarFile jarFile = new JarFile(new File(url.toURI()));
-
+    private String[] listDrawResourcesInJar() {
+        try (JarFile jarFile = new JarFile(new File(getClass().getProtectionDomain().getCodeSource().getLocation().toURI()))) {
             List<String> result = new ArrayList<>();
             Enumeration<JarEntry> entries = jarFile.entries();
 
             while (entries.hasMoreElements()) {
                 JarEntry entry = entries.nextElement();
-                if (entry == null || entry.isDirectory() || !entry.getName().startsWith(path + "/") || !entry.getName().endsWith(".yml")) {
+                if (entry == null || entry.isDirectory() || !entry.getName().startsWith("draw/") || !entry.getName().endsWith(".yml")) {
                     continue;
                 }
-
-                // 尝试用 UTF-8 解码文件名
-                byte[] nameBytes = entry.getName().getBytes(StandardCharsets.ISO_8859_1);
-                String utf8Name = new String(nameBytes, StandardCharsets.UTF_8);
-
-                // 添加去掉路径前缀后的文件名
-                result.add(utf8Name.substring(path.length() + 1));
+                result.add(entry.getName().substring(5)); // "draw/".length() == 5
             }
 
-            jarFile.close();
             return result.toArray(new String[0]);
-        } catch (IOException | IllegalArgumentException | SecurityException | NullPointerException e) {
-            Bukkit.getConsoleSender().sendMessage("§c[错误]§a无法读取 JAR 文件: " + e.getMessage());
-            e.printStackTrace();
-            return null;
         } catch (Exception e) {
-            Bukkit.getConsoleSender().sendMessage("§c[错误]§a未知错误: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("无法读取 JAR 文件: {}", e.getMessage(), e);
             return null;
         }
     }
@@ -109,11 +95,10 @@ public class YamlManager
         // 确保目录存在
         if (!drawDataFolder.exists()) {
             boolean ignore = drawDataFolder.mkdirs();
-            Bukkit.getConsoleSender().sendMessage("§c[系统]§a创建了 'draw' 文件夹.");
         }
 
         // 使用新方法列出默认资源文件夹中的所有 .yml 文件名
-        String[] defaultDrawFiles = listResourcesInJar("draw");
+        String[] defaultDrawFiles = listDrawResourcesInJar();
 
         if (defaultDrawFiles != null) {
             for (String fileName : defaultDrawFiles) {
@@ -162,33 +147,33 @@ public class YamlManager
                 DrawData.DrawMap.put(file.getName().split("\\.")[0], dd);
                 loadedCount++;
             } catch (Exception e) {
+                logger.error("加载文件 {} 时发生异常: {}", file.getName(), e.getMessage(), e);
                 Bukkit.getConsoleSender().sendMessage("§c[错误]§a加载文件 " + file.getName() + " 时发生异常: " + e.getMessage());
-                e.printStackTrace();
             }
         }
 
         long diff = new Date().getTime() - first.getTime();
         if (loadedCount > 0) {
             // 打印顶部边框
-            Bukkit.getConsoleSender().sendMessage("§8----------------------------------------");
-            Bukkit.getConsoleSender().sendMessage("§8| §a§lNullForge §8- §a加载图纸 §8|");
-            Bukkit.getConsoleSender().sendMessage("§8----------------------------------------");
+            Bukkit.getConsoleSender().sendMessage("§8=============================================");
+            Bukkit.getConsoleSender().sendMessage("§8| §a§lNullForge §8- §aVersion: §b1.0.0");
+            Bukkit.getConsoleSender().sendMessage("§8=============================================");
 
             // 打印加载成功的文件名，并添加序号
             int index = 1;
             for (String s : msg) {
-                Bukkit.getConsoleSender().sendMessage(String.format("§8| §a§l%2d. §r%s §a§l[已加载] §8|", index++, s));
+                Bukkit.getConsoleSender().sendMessage(String.format("§8|§a§l%2d. §r%s §a§l[已加载]", index++, s));
             }
 
             // 打印底部边框和总结信息
-            Bukkit.getConsoleSender().sendMessage("§8----------------------------------------");
-            Bukkit.getConsoleSender().sendMessage(String.format("§8| §a共加载了 %d 个图纸, 耗时 %d 毫秒 §8|", loadedCount, diff));
-            Bukkit.getConsoleSender().sendMessage("§8----------------------------------------\n");
+            Bukkit.getConsoleSender().sendMessage("§8=============================================");
+            Bukkit.getConsoleSender().sendMessage(String.format("§8| §a共加载了 %d 个图纸, 耗时 %d 毫秒", loadedCount, diff));
+            Bukkit.getConsoleSender().sendMessage("§8=============================================");
         } else {
             // 如果没有加载任何文件，则打印提示信息
-            Bukkit.getConsoleSender().sendMessage("§c----------------------------------------");
-            Bukkit.getConsoleSender().sendMessage("§c| §a没有任何有效的图纸被加载. §c|");
-            Bukkit.getConsoleSender().sendMessage("§c----------------------------------------\n");
+            Bukkit.getConsoleSender().sendMessage("§8=============================================");
+            Bukkit.getConsoleSender().sendMessage("§c| §a没有任何有效的图纸被加载.");
+            Bukkit.getConsoleSender().sendMessage("§8=============================================");
         }
     }
 
