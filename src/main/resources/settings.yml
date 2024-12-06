@@ -5,7 +5,6 @@ Ore_Chance:
     #掉落该物品的几率
     - 500
 #矿石掉落宝石的世界列表
-
 Ore_Worlds:
     - "zy"
     - "plot"

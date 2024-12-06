@@ -17,8 +17,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-public class YamlManager
-        implements DataManagerImpl {
+public class YamlManager implements DataManagerImpl {
     @Override
     public void getPlayerData(Player p) {
         PlayerData pd;
@@ -28,19 +27,19 @@ public class YamlManager
         if (playerConfigFile.exists()) {
             int level = playerConfig.getInt("level");
             double exp = playerConfig.getDouble("exp");
-            List learn = playerConfig.getStringList("learn");
+            List<String> learn = playerConfig.getStringList("learn");
             pd = new PlayerData(level, exp, learn);
         } else {
-            playerConfig.set("level", (Object)0);
-            playerConfig.set("exp", (Object)0.0);
-            playerConfig.set("learn", new ArrayList());
+            playerConfig.set("level", 0);
+            playerConfig.set("exp", 0.0);
+            playerConfig.set("learn", new ArrayList<>());
             try {
                 playerConfig.save(playerConfigFile);
             }
             catch (Exception e) {
                 throw new RuntimeException(e);
             }
-            pd = new PlayerData(0, 0.0, new ArrayList<String>());
+            pd = new PlayerData(0, 0.0, new ArrayList<>());
         }
         PlayerData.pMap.put(p.getName(), pd);
     }
@@ -53,9 +52,9 @@ public class YamlManager
         PlayerData pd = PlayerData.pMap.get(p.getName());
         File playerDataFolder = new File(Main.instance.getDataFolder(), "players");
         File playerConfigFile = new File(playerDataFolder, p.getName() + ".yml");
-        YamlConfiguration playerConfig = YamlConfiguration.loadConfiguration((File)playerConfigFile);
-        playerConfig.set("level", (Object)pd.getLevel());
-        playerConfig.set("exp", (Object)pd.getExp());
+        YamlConfiguration playerConfig = YamlConfiguration.loadConfiguration(playerConfigFile);
+        playerConfig.set("level", pd.getLevel());
+        playerConfig.set("exp", pd.getExp());
         playerConfig.set("learn", pd.getLearn());
         try {
             playerConfig.save(playerConfigFile);
@@ -107,24 +106,24 @@ public class YamlManager
 
         // 确保目录存在
         if (!drawDataFolder.exists()) {
-            drawDataFolder.mkdirs();
+            boolean ignore = drawDataFolder.mkdirs();
             Bukkit.getConsoleSender().sendMessage("§c[系统]§a创建了 'draw' 文件夹.");
         }
 
         // 使用新方法列出默认资源文件夹中的所有 .yml 文件名
-        String[] defaultDrawFiles = listResourcesInJar("draw");
-
-        if (defaultDrawFiles != null) {
-            for (String fileName : defaultDrawFiles) {
-                File targetFile = new File(drawDataFolder, fileName);
-                if (!targetFile.exists()) {
-                    // 如果文件不存在，则从JAR中复制默认文件
-                    Main.instance.saveResource("draw/" + fileName, false);
-                }
-            }
-        } else {
-            Bukkit.getConsoleSender().sendMessage("§c[系统]§a无法获取 JAR 内的默认图纸文件列表.");
-        }
+        // String[] defaultDrawFiles = listResourcesInJar("draw");
+        // if (defaultDrawFiles != null) {
+        //     for (String fileName : defaultDrawFiles) {
+        //         File targetFile = new File(drawDataFolder, fileName);
+        //         if (!targetFile.exists()) {
+        //             // 如果文件不存在，则从JAR中复制默认文件
+        //             Main.instance.saveResource("draw/" + fileName, false);
+        //         }
+        //     }
+        // } else {
+        //     Bukkit.getConsoleSender().sendMessage("§c[系统]§a无法获取 JAR 内的默认图纸文件列表.");
+        // }
+        Main.instance.saveResource("draw/example.yml", false);
 
         // 列出并加载现有的 .yml 文件
         File[] files = drawDataFolder.listFiles(pathname -> {
@@ -137,7 +136,7 @@ public class YamlManager
             return;
         }
 
-        ArrayList<String> msg = new ArrayList<>();
+        List<String> msg = new ArrayList<>();
         Date first = new Date();
         int loadedCount = 0; // 记录成功加载的数量
         for (File file : files) {
@@ -198,16 +197,16 @@ public class YamlManager
             File drawConfigFile = new File(drawDataFolder, name + ".yml");
             YamlConfiguration drawConfig = YamlConfiguration.loadConfiguration((File)drawConfigFile);
             DrawData dd = DrawData.DrawMap.get(name);
-            drawConfig.set("gem", (Object)ItemString.getString(dd.getGem()));
+            drawConfig.set("gem", ItemString.getString(dd.getGem()));
             List<ItemStack> list = dd.getFormula();
             StringBuilder sb = new StringBuilder();
             for (ItemStack item : list) {
                 sb.append(ItemString.getString(item)).append(",");
             }
-            drawConfig.set("formula", (Object)sb.toString());
-            drawConfig.set("result", (Object)ItemString.getString(dd.getResult()));
-            drawConfig.set("gemlevel", (Object)dd.getNeedGemLevel());
-            drawConfig.set("playerlevel", (Object)dd.getNeedPlayerLevel());
+            drawConfig.set("formula", sb.toString());
+            drawConfig.set("result", ItemString.getString(dd.getResult()));
+            drawConfig.set("gemlevel", dd.getNeedGemLevel());
+            drawConfig.set("playerlevel", dd.getNeedPlayerLevel());
             drawConfig.set("detail", dd.getDetail());
             drawConfig.set("attrib", dd.getAttrib());
         }
