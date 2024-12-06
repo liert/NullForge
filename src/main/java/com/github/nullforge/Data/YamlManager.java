@@ -23,7 +23,7 @@ public class YamlManager implements DataManagerImpl {
         PlayerData pd;
         File playerDataFolder = new File(Main.instance.getDataFolder(), "players");
         File playerConfigFile = new File(playerDataFolder, p.getName() + ".yml");
-        YamlConfiguration playerConfig = YamlConfiguration.loadConfiguration((File)playerConfigFile);
+        YamlConfiguration playerConfig = YamlConfiguration.loadConfiguration(playerConfigFile);
         if (playerConfigFile.exists()) {
             int level = playerConfig.getInt("level");
             double exp = playerConfig.getDouble("exp");
@@ -61,42 +61,6 @@ public class YamlManager implements DataManagerImpl {
         }
         catch (Exception e) {
             throw new RuntimeException(e);
-        }
-    }
-
-    private String[] listResourcesInJar(String path) {
-        try {
-            // 获取插件的 jar 文件 URL 并去除 "file:" 前缀
-            URL url = getClass().getProtectionDomain().getCodeSource().getLocation();
-            JarFile jarFile = new JarFile(new File(url.toURI()));
-
-            List<String> result = new ArrayList<>();
-            Enumeration<JarEntry> entries = jarFile.entries();
-
-            while (entries.hasMoreElements()) {
-                JarEntry entry = entries.nextElement();
-                if (entry == null || entry.isDirectory() || !entry.getName().startsWith(path + "/") || !entry.getName().endsWith(".yml")) {
-                    continue;
-                }
-
-                // 尝试用 UTF-8 解码文件名
-                byte[] nameBytes = entry.getName().getBytes(StandardCharsets.ISO_8859_1);
-                String utf8Name = new String(nameBytes, StandardCharsets.UTF_8);
-
-                // 添加去掉路径前缀后的文件名
-                result.add(utf8Name.substring(path.length() + 1));
-            }
-
-            jarFile.close();
-            return result.toArray(new String[0]);
-        } catch (IOException | IllegalArgumentException | SecurityException | NullPointerException e) {
-            Bukkit.getConsoleSender().sendMessage("§c[错误]§a无法读取 JAR 文件: " + e.getMessage());
-            e.printStackTrace();
-            return null;
-        } catch (Exception e) {
-            Bukkit.getConsoleSender().sendMessage("§c[错误]§a未知错误: " + e.getMessage());
-            e.printStackTrace();
-            return null;
         }
     }
 
@@ -195,7 +159,7 @@ public class YamlManager implements DataManagerImpl {
         File drawDataFolder = new File(Main.instance.getDataFolder(), "draw");
         for (String name : DrawData.DrawMap.keySet()) {
             File drawConfigFile = new File(drawDataFolder, name + ".yml");
-            YamlConfiguration drawConfig = YamlConfiguration.loadConfiguration((File)drawConfigFile);
+            YamlConfiguration drawConfig = YamlConfiguration.loadConfiguration(drawConfigFile);
             DrawData dd = DrawData.DrawMap.get(name);
             drawConfig.set("gem", ItemString.getString(dd.getGem()));
             List<ItemStack> list = dd.getFormula();
@@ -217,7 +181,7 @@ public class YamlManager implements DataManagerImpl {
         File drawDataFolder = new File(Main.instance.getDataFolder(), "draw");
         File drawConfigFile = new File(drawDataFolder, name + ".yml");
         if (drawConfigFile.exists()) {
-            boolean bl = drawConfigFile.delete();
+            boolean ignore = drawConfigFile.delete();
         }
     }
 
@@ -225,7 +189,7 @@ public class YamlManager implements DataManagerImpl {
     public String getDrawName(String name) {
         File drawDataFolder = new File(Main.instance.getDataFolder(), "draw");
         File drawConfigFile = new File(drawDataFolder, name + ".yml");
-        YamlConfiguration drawConfig = YamlConfiguration.loadConfiguration((File)drawConfigFile);
+        YamlConfiguration drawConfig = YamlConfiguration.loadConfiguration(drawConfigFile);
         return drawConfig.getString("name");
     }
 }
