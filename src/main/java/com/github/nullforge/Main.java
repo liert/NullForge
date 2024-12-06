@@ -34,6 +34,10 @@ public class Main {
     private static MythicMobs mythicMobs;
     private static MMItemManager itemManager;
 
+    static {
+        rd = new Random();
+    }
+
     public Main(JavaPlugin plugin) {
         instance = plugin;
     }
@@ -44,12 +48,12 @@ public class Main {
         mythicMobs = MythicMobs.inst();
         itemManager = new MMItemManager();
         this.setupEconomy();
-        ConfigurationLoader.loadYamlConfiguration((Plugin) this, Settings.class, true);
+        ConfigurationLoader.loadYamlConfiguration(instance, Settings.class, true);
         this.initFolder();
         dataManger = new YamlManager();
         dataManger.getDrawData();
         if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
-            new NameHolder((Plugin) this, "forge").hook();
+            new NameHolder(instance, "forge").hook();
         }
         // 再次打印一条确认信息
         Bukkit.getConsoleSender().sendMessage("§8| §a插件加载成功!");
@@ -75,11 +79,11 @@ public class Main {
         instance.getCommand("dz").setExecutor(new OnForge());
         instance.getCommand("hc").setExecutor(new OnCompose());
         instance.getCommand("fadmin").setExecutor(new OnAdminCommands());
-        Bukkit.getPluginManager().registerEvents(new OnPlayerBreakBlock(), (Plugin) this);
-        Bukkit.getPluginManager().registerEvents(new OnPlayerClickInv(), (Plugin) this);
-        Bukkit.getPluginManager().registerEvents(new OnPlayerForgeItem(), (Plugin) this);
-        Bukkit.getPluginManager().registerEvents(new OnPlayerJoin(), (Plugin) this);
-        Bukkit.getPluginManager().registerEvents(new OnPlayerInteract(), (Plugin) this);
+        Bukkit.getPluginManager().registerEvents(new OnPlayerBreakBlock(), instance);
+        Bukkit.getPluginManager().registerEvents(new OnPlayerClickInv(), instance);
+        Bukkit.getPluginManager().registerEvents(new OnPlayerForgeItem(), instance);
+        Bukkit.getPluginManager().registerEvents(new OnPlayerJoin(), instance);
+        Bukkit.getPluginManager().registerEvents(new OnPlayerInteract(), instance);
     }
 
     private void initFolder() {
@@ -109,8 +113,5 @@ public class Main {
         return mythicMobs;
     }
 
-    static {
-        rd = new Random();
-    }
 }
 

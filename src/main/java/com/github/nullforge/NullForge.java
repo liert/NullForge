@@ -1,6 +1,6 @@
 package com.github.nullforge;
 
-import com.github.nullcore.Log;
+import com.github.nullcore.Utils.Log;
 import com.github.nullcore.NullCore;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -14,7 +14,7 @@ public class NullForge extends NullCore {
 
     @Override
     public void onEnable() {
-        registerPlugin(this);
+        registerPlugin();
         try {
             Class<?> MainClass = Class.forName("com.github.nullforge.Main");
             Constructor<?> constructor = MainClass.getConstructor(JavaPlugin.class);
