@@ -3,14 +3,15 @@ package com.github.nullforge.Data;
 import com.github.nullforge.Main;
 import com.github.nullforge.Utils.ItemString;
 import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -18,32 +19,28 @@ import org.bukkit.inventory.ItemStack;
 
 public class YamlManager
         implements DataManagerImpl {
-
-    // 在类的成员变量处声明一个 Logger 实例
-    private static final Logger logger = LoggerFactory.getLogger(YamlManager.class);
-
     @Override
     public void getPlayerData(Player p) {
         PlayerData pd;
         File playerDataFolder = new File(Main.instance.getDataFolder(), "players");
         File playerConfigFile = new File(playerDataFolder, p.getName() + ".yml");
-        YamlConfiguration playerConfig = YamlConfiguration.loadConfiguration(playerConfigFile);
+        YamlConfiguration playerConfig = YamlConfiguration.loadConfiguration((File)playerConfigFile);
         if (playerConfigFile.exists()) {
             int level = playerConfig.getInt("level");
             double exp = playerConfig.getDouble("exp");
-            List<String> learn = playerConfig.getStringList("learn");
+            List learn = playerConfig.getStringList("learn");
             pd = new PlayerData(level, exp, learn);
         } else {
-            playerConfig.set("level", 0);
-            playerConfig.set("exp", 0.0);
-            playerConfig.set("learn", new ArrayList<>());
+            playerConfig.set("level", (Object)0);
+            playerConfig.set("exp", (Object)0.0);
+            playerConfig.set("learn", new ArrayList());
             try {
                 playerConfig.save(playerConfigFile);
             }
             catch (Exception e) {
                 throw new RuntimeException(e);
             }
-            pd = new PlayerData(0, 0.0, new ArrayList<>());
+            pd = new PlayerData(0, 0.0, new ArrayList<String>());
         }
         PlayerData.pMap.put(p.getName(), pd);
     }
@@ -56,9 +53,9 @@ public class YamlManager
         PlayerData pd = PlayerData.pMap.get(p.getName());
         File playerDataFolder = new File(Main.instance.getDataFolder(), "players");
         File playerConfigFile = new File(playerDataFolder, p.getName() + ".yml");
-        YamlConfiguration playerConfig = YamlConfiguration.loadConfiguration(playerConfigFile);
-        playerConfig.set("level", pd.getLevel());
-        playerConfig.set("exp", pd.getExp());
+        YamlConfiguration playerConfig = YamlConfiguration.loadConfiguration((File)playerConfigFile);
+        playerConfig.set("level", (Object)pd.getLevel());
+        playerConfig.set("exp", (Object)pd.getExp());
         playerConfig.set("learn", pd.getLearn());
         try {
             playerConfig.save(playerConfigFile);
@@ -68,22 +65,38 @@ public class YamlManager
         }
     }
 
-    private String[] listDrawResourcesInJar() {
-        try (JarFile jarFile = new JarFile(new File(getClass().getProtectionDomain().getCodeSource().getLocation().toURI()))) {
+    private String[] listResourcesInJar(String path) {
+        try {
+            // 获取插件的 jar 文件 URL 并去除 "file:" 前缀
+            URL url = getClass().getProtectionDomain().getCodeSource().getLocation();
+            JarFile jarFile = new JarFile(new File(url.toURI()));
+
             List<String> result = new ArrayList<>();
             Enumeration<JarEntry> entries = jarFile.entries();
 
             while (entries.hasMoreElements()) {
                 JarEntry entry = entries.nextElement();
-                if (entry == null || entry.isDirectory() || !entry.getName().startsWith("draw/") || !entry.getName().endsWith(".yml")) {
+                if (entry == null || entry.isDirectory() || !entry.getName().startsWith(path + "/") || !entry.getName().endsWith(".yml")) {
                     continue;
                 }
-                result.add(entry.getName().substring(5)); // "draw/".length() == 5
+
+                // 尝试用 UTF-8 解码文件名
+                byte[] nameBytes = entry.getName().getBytes(StandardCharsets.ISO_8859_1);
+                String utf8Name = new String(nameBytes, StandardCharsets.UTF_8);
+
+                // 添加去掉路径前缀后的文件名
+                result.add(utf8Name.substring(path.length() + 1));
             }
 
+            jarFile.close();
             return result.toArray(new String[0]);
+        } catch (IOException | IllegalArgumentException | SecurityException | NullPointerException e) {
+            Bukkit.getConsoleSender().sendMessage("§c[错误]§a无法读取 JAR 文件: " + e.getMessage());
+            e.printStackTrace();
+            return null;
         } catch (Exception e) {
-            logger.error("无法读取 JAR 文件: {}", e.getMessage(), e);
+            Bukkit.getConsoleSender().sendMessage("§c[错误]§a未知错误: " + e.getMessage());
+            e.printStackTrace();
             return null;
         }
     }
@@ -94,11 +107,12 @@ public class YamlManager
 
         // 确保目录存在
         if (!drawDataFolder.exists()) {
-            boolean ignore = drawDataFolder.mkdirs();
+            drawDataFolder.mkdirs();
+            Bukkit.getConsoleSender().sendMessage("§c[系统]§a创建了 'draw' 文件夹.");
         }
 
         // 使用新方法列出默认资源文件夹中的所有 .yml 文件名
-        String[] defaultDrawFiles = listDrawResourcesInJar();
+        String[] defaultDrawFiles = listResourcesInJar("draw");
 
         if (defaultDrawFiles != null) {
             for (String fileName : defaultDrawFiles) {
@@ -147,8 +161,8 @@ public class YamlManager
                 DrawData.DrawMap.put(file.getName().split("\\.")[0], dd);
                 loadedCount++;
             } catch (Exception e) {
-                logger.error("加载文件 {} 时发生异常: {}", file.getName(), e.getMessage(), e);
                 Bukkit.getConsoleSender().sendMessage("§c[错误]§a加载文件 " + file.getName() + " 时发生异常: " + e.getMessage());
+                e.printStackTrace();
             }
         }
 
@@ -182,18 +196,18 @@ public class YamlManager
         File drawDataFolder = new File(Main.instance.getDataFolder(), "draw");
         for (String name : DrawData.DrawMap.keySet()) {
             File drawConfigFile = new File(drawDataFolder, name + ".yml");
-            YamlConfiguration drawConfig = YamlConfiguration.loadConfiguration(drawConfigFile);
+            YamlConfiguration drawConfig = YamlConfiguration.loadConfiguration((File)drawConfigFile);
             DrawData dd = DrawData.DrawMap.get(name);
-            drawConfig.set("gem", ItemString.getString(dd.getGem()));
+            drawConfig.set("gem", (Object)ItemString.getString(dd.getGem()));
             List<ItemStack> list = dd.getFormula();
             StringBuilder sb = new StringBuilder();
             for (ItemStack item : list) {
                 sb.append(ItemString.getString(item)).append(",");
             }
-            drawConfig.set("formula", sb.toString());
-            drawConfig.set("result", ItemString.getString(dd.getResult()));
-            drawConfig.set("gemlevel", dd.getNeedGemLevel());
-            drawConfig.set("playerlevel", dd.getNeedPlayerLevel());
+            drawConfig.set("formula", (Object)sb.toString());
+            drawConfig.set("result", (Object)ItemString.getString(dd.getResult()));
+            drawConfig.set("gemlevel", (Object)dd.getNeedGemLevel());
+            drawConfig.set("playerlevel", (Object)dd.getNeedPlayerLevel());
             drawConfig.set("detail", dd.getDetail());
             drawConfig.set("attrib", dd.getAttrib());
         }
@@ -204,7 +218,7 @@ public class YamlManager
         File drawDataFolder = new File(Main.instance.getDataFolder(), "draw");
         File drawConfigFile = new File(drawDataFolder, name + ".yml");
         if (drawConfigFile.exists()) {
-            boolean ignore = drawConfigFile.delete();
+            boolean bl = drawConfigFile.delete();
         }
     }
 
@@ -212,7 +226,7 @@ public class YamlManager
     public String getDrawName(String name) {
         File drawDataFolder = new File(Main.instance.getDataFolder(), "draw");
         File drawConfigFile = new File(drawDataFolder, name + ".yml");
-        YamlConfiguration drawConfig = YamlConfiguration.loadConfiguration(drawConfigFile);
+        YamlConfiguration drawConfig = YamlConfiguration.loadConfiguration((File)drawConfigFile);
         return drawConfig.getString("name");
     }
 }
