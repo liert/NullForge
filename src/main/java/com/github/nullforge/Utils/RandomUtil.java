@@ -1,4 +1,3 @@
-
 package com.github.nullforge.Utils;
 
 import java.util.LinkedHashMap;

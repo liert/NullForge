@@ -1,5 +1,3 @@
-// Decompiled with: CFR 0.152
-// Class Version: 8
 package com.github.nullforge.Utils;
 
 import com.github.nullforge.Main;
