@@ -24,8 +24,8 @@
   forge-fail: "§c[系统]§a锻造失败,系统已返回你所有放置的物品!"
   forge-ing: "§c[系统]§a正在锻造中....请稍后...."
   forge-null: "§c[系统]§a锻造材料不匹配,系统已返回你所有放置的物品.请放入正确的锻造所需材料!"
-  forge-hoist: §c[系统]§a你使用了品质属性增加道具增加了品质几率§e§l%addchance%"
-  forge-finish: §c[系统]§a恭喜你锻造成功.请取出你锻造出来的神器!"
+  forge-hoist: "§c[系统]§a你使用了品质属性增加道具增加了品质几率§e§l%addchance%"
+  forge-finish: "§c[系统]§a恭喜你锻造成功.请取出你锻造出来的神器!"
   forge-broadcast: "§c[系统]§a玩家 %player% 锻造出 %quality% 品质的 %itemname% 物品!"
 #锻造等级
   forge-max-level: "§c[系统]§a你的锻造等级已经达到了最大等级!"
