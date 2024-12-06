@@ -7,3 +7,4 @@ libs/allatori-annotations.jar
 libs/spigot-api-1.12.2-R0.1-SNAPSHOT.jar
 dependency-reduced-pom.xml
 NullForge.iml
+/libs/NullCore-1.0.jar
