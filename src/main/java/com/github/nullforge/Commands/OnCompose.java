@@ -1,7 +1,6 @@
 package com.github.nullforge.Commands;
 
 import com.github.nullforge.GUI.ComposeGUI;
-import com.github.nullforge.Main;
 import com.github.nullforge.NullForge;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;

@@ -1,13 +1,11 @@
 package com.github.nullforge.Data;
 
-import com.github.nullforge.Main;
 import com.github.nullforge.NullForge;
 import com.github.nullforge.Utils.ItemString;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;

@@ -2,7 +2,6 @@ package com.github.nullforge.Commands;
 
 import com.github.nullforge.Data.PlayerData;
 import com.github.nullforge.GUI.SwitchDrawGUI;
-import com.github.nullforge.Main;
 import com.github.nullforge.MessageLoader;
 import com.github.nullforge.NullForge;
 import org.bukkit.command.Command;
