@@ -437,7 +437,11 @@ public class OnPlayerClickInv
     }
 
     public boolean getAttrib(DrawData dd) {
-        int id = dd.getResult().getTypeId();
+        ItemStack itemStack = dd.getResult();
+        if (itemStack == null) {
+            return false;
+        }
+        int id = itemStack.getTypeId();
         boolean result = id == 267 || id == 268 || id == 272 || id == 276 || id == 283 || id == 298 || id == 302 || id == 306 || id == 310 || id == 314 || id == 299 || id == 303 || id == 307 || id == 311 || id == 315 || id == 300 || id == 304 || id == 308 || id == 312 || id == 316 || id == 301 || id == 305 || id == 309 || id == 313 || id == 317 || id == 442;
         return true;
     }

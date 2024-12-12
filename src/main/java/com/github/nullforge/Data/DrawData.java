@@ -3,7 +3,6 @@ package com.github.nullforge.Data;
 import com.github.nullforge.Config.Settings;
 import com.github.nullforge.Utils.ItemMaker;
 import com.github.nullforge.Utils.ItemString;
-import java.beans.ConstructorProperties;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -16,6 +15,8 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 public class DrawData {
     public static Map<String, DrawData> DrawMap = new HashMap<>();
+    // 图纸Lore中显示的名字
+    private final String displayName;
     private String gem;
     private List<String> formula;
     private String result;
@@ -61,7 +62,7 @@ public class DrawData {
         if (dName == null) {
             return null;
         }
-        ItemStack item = ItemMaker.create(Settings.I.Draw_Item_ID, 0, "§b§l锻造图纸", dName, "§c该图纸需要锻造等级:§b§l" + this.needPlayerLevel);
+        ItemStack item = ItemMaker.create(Settings.I.Draw_Item_ID, 0, "§b§l锻造图纸", this.displayName, "§c该图纸需要锻造等级:§b§l" + this.needPlayerLevel);
         ItemMeta meta = item.getItemMeta();
         List<String> lore = meta.getLore();
         lore.addAll(this.detail);
@@ -72,6 +73,7 @@ public class DrawData {
         return item;
     }
 
+    // 获取的是图纸文件名
     public static String getDrawName(DrawData dd) {
         String dName = null;
         for (String name : DrawMap.keySet()) {
@@ -81,8 +83,9 @@ public class DrawData {
         return dName;
     }
 
-    @ConstructorProperties(value={"gem", "formula", "result", "needGemLevel", "needPlayerLevel", "detail", "attrib"})
-    public DrawData(String gem, List<String> formula, String result, int needGemLevel, int needPlayerLevel, List<String> detail, List<String> attrib) {
+    // @ConstructorProperties(value={"gem", "formula", "result", "needGemLevel", "needPlayerLevel", "detail", "attrib"})
+    public DrawData(String displayName, String gem, List<String> formula, String result, int needGemLevel, int needPlayerLevel, List<String> detail, List<String> attrib) {
+        this.displayName = displayName;
         this.gem = gem;
         this.formula = formula;
         this.result = result;

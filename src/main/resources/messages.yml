@@ -4,7 +4,7 @@
   gui-first-page: "§c[系统]§a已经是第一页了!"
   gui-last-page: "§c[系统]§a已经是最后一页了!"
   gui-invalid-draw: "§c[系统]§a放置的图纸不是有效的锻造图纸"
-  gui-invalid-item: "§c[系统]§a图纸最终的输出物品不合法,请联系管理员"
+  gui-invalid-item: "§c[系统]§a图纸最终的输出物品不合法或物品不存在,请联系管理员"
   gui-not-draw: "§c[系统]§a该图纸不存在!"
   gui-not-gem: "§c[系统]§a放置的宝石不是有效的锻造宝石"
   gui-not-level: "§c[系统]§a你的等级不足以锻造这张图纸的装备!需要等级§b§l"

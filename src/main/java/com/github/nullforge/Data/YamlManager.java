@@ -93,6 +93,7 @@ public class YamlManager implements DataManagerImpl {
                     continue;
                 }
                 msg.add(name);
+                String displayName = drawConfig.getString("name");
                 String gem = drawConfig.getString("gem");
                 List<String> formula = drawConfig.getStringList("formula");
                 String result = drawConfig.getString("result");
@@ -101,7 +102,7 @@ public class YamlManager implements DataManagerImpl {
                 List<String> detail = drawConfig.getStringList("detail");
                 List<String> attrib = drawConfig.getStringList("attrib");
 
-                DrawData dd = new DrawData(gem, formula, result, gemLevel, playerLevel, detail, attrib);
+                DrawData dd = new DrawData(displayName, gem, formula, result, gemLevel, playerLevel, detail, attrib);
                 DrawData.DrawMap.put(file.getName().split("\\.")[0], dd);
                 loadedCount++;
             } catch (Exception e) {
