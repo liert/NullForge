@@ -1,38 +1,22 @@
 package com.github.nullforge;
 
-import com.github.nullcore.Utils.Log;
 import com.github.nullcore.NullCore;
-import org.bukkit.plugin.java.JavaPlugin;
-
-import java.lang.reflect.Constructor;
 
 public class NullForge extends NullCore {
-    private Main main;
+    public static NullForge INSTANCE;
     @Override
     public void onLoad() {
+        INSTANCE = this;
     }
 
     @Override
     public void onEnable() {
         registerPlugin();
-        try {
-            Class<?> MainClass = Class.forName("com.github.nullforge.Main");
-            Constructor<?> constructor = MainClass.getConstructor(JavaPlugin.class);
-            main = (Main) constructor.newInstance(this);
-            MainClass.getDeclaredMethod("start").invoke(main);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        start("com.github.nullforge.Main");
     }
 
     @Override
     public void onDisable() {
-        try {
-            Class<?> MainClass = Class.forName("com.github.nullforge.Main");
-            MainClass.getDeclaredMethod("stop").invoke(main);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        Log.info("NullForge is disabled!");
+        stop("com.github.nullforge.Main");
     }
 }

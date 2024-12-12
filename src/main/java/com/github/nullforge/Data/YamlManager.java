@@ -1,6 +1,7 @@
 package com.github.nullforge.Data;
 
 import com.github.nullforge.Main;
+import com.github.nullforge.NullForge;
 import com.github.nullforge.Utils.ItemString;
 import java.io.File;
 import java.util.ArrayList;
@@ -16,7 +17,7 @@ public class YamlManager implements DataManagerImpl {
     @Override
     public void getPlayerData(Player p) {
         PlayerData pd;
-        File playerDataFolder = new File(Main.instance.getDataFolder(), "players");
+        File playerDataFolder = new File(NullForge.INSTANCE.getDataFolder(), "players");
         File playerConfigFile = new File(playerDataFolder, p.getName() + ".yml");
         YamlConfiguration playerConfig = YamlConfiguration.loadConfiguration(playerConfigFile);
         if (playerConfigFile.exists()) {
@@ -45,7 +46,7 @@ public class YamlManager implements DataManagerImpl {
             return;
         }
         PlayerData pd = PlayerData.pMap.get(p.getName());
-        File playerDataFolder = new File(Main.instance.getDataFolder(), "players");
+        File playerDataFolder = new File(NullForge.INSTANCE.getDataFolder(), "players");
         File playerConfigFile = new File(playerDataFolder, p.getName() + ".yml");
         YamlConfiguration playerConfig = YamlConfiguration.loadConfiguration(playerConfigFile);
         playerConfig.set("level", pd.getLevel());
@@ -61,7 +62,7 @@ public class YamlManager implements DataManagerImpl {
 
     @Override
     public void getDrawData() {
-        File drawDataFolder = new File(Main.instance.getDataFolder(), "draw");
+        File drawDataFolder = new File(NullForge.INSTANCE.getDataFolder(), "draw");
 
         // 确保目录存在
         if (!drawDataFolder.exists()) {
@@ -69,20 +70,7 @@ public class YamlManager implements DataManagerImpl {
             Bukkit.getConsoleSender().sendMessage("§c[系统]§a创建了 'draw' 文件夹.");
         }
 
-        // 使用新方法列出默认资源文件夹中的所有 .yml 文件名
-        // String[] defaultDrawFiles = listResourcesInJar("draw");
-        // if (defaultDrawFiles != null) {
-        //     for (String fileName : defaultDrawFiles) {
-        //         File targetFile = new File(drawDataFolder, fileName);
-        //         if (!targetFile.exists()) {
-        //             // 如果文件不存在，则从JAR中复制默认文件
-        //             Main.instance.saveResource("draw/" + fileName, false);
-        //         }
-        //     }
-        // } else {
-        //     Bukkit.getConsoleSender().sendMessage("§c[系统]§a无法获取 JAR 内的默认图纸文件列表.");
-        // }
-        Main.instance.saveResource("draw/example.yml", false);
+        NullForge.INSTANCE.saveResource("draw/example.yml", false);
 
         // 列出并加载现有的 .yml 文件
         File[] files = drawDataFolder.listFiles(pathname -> {
@@ -151,7 +139,7 @@ public class YamlManager implements DataManagerImpl {
 
     @Override
     public void saveDrawData() {
-        File drawDataFolder = new File(Main.instance.getDataFolder(), "draw");
+        File drawDataFolder = new File(NullForge.INSTANCE.getDataFolder(), "draw");
         for (String name : DrawData.DrawMap.keySet()) {
             File drawConfigFile = new File(drawDataFolder, name + ".yml");
             YamlConfiguration drawConfig = YamlConfiguration.loadConfiguration(drawConfigFile);
@@ -173,7 +161,7 @@ public class YamlManager implements DataManagerImpl {
 
     @Override
     public void delDraw(String name) {
-        File drawDataFolder = new File(Main.instance.getDataFolder(), "draw");
+        File drawDataFolder = new File(NullForge.INSTANCE.getDataFolder(), "draw");
         File drawConfigFile = new File(drawDataFolder, name + ".yml");
         if (drawConfigFile.exists()) {
             boolean ignore = drawConfigFile.delete();
@@ -182,7 +170,7 @@ public class YamlManager implements DataManagerImpl {
 
     @Override
     public String getDrawName(String name) {
-        File drawDataFolder = new File(Main.instance.getDataFolder(), "draw");
+        File drawDataFolder = new File(NullForge.INSTANCE.getDataFolder(), "draw");
         File drawConfigFile = new File(drawDataFolder, name + ".yml");
         YamlConfiguration drawConfig = YamlConfiguration.loadConfiguration(drawConfigFile);
         return drawConfig.getString("name");

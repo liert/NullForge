@@ -15,18 +15,15 @@ import com.github.nullforge.Listeners.OnPlayerJoin;
 import com.github.nullforge.PlaceHolder.NameHolder;
 import com.github.nullforge.Utils.MMItemManager;
 import io.lumine.xikage.mythicmobs.MythicMobs;
-
 import java.io.File;
 import java.util.Random;
-
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.RegisteredServiceProvider;
-import org.bukkit.plugin.java.JavaPlugin;
 
 public class Main {
-    public static JavaPlugin instance;
+    public static Main INSTANCE;
     public static DataManagerImpl dataManger;
     public static Economy vault;
     public static Random rd;
@@ -37,22 +34,22 @@ public class Main {
         rd = new Random();
     }
 
-    public Main(JavaPlugin plugin) {
-        instance = plugin;
+    public Main() {
+        INSTANCE = this;
     }
 
     public void start() {
-        MessageLoader.initialize(instance);
+        MessageLoader.initialize(NullForge.INSTANCE);
         EnableListener();
         mythicMobs = MythicMobs.inst();
         itemManager = new MMItemManager();
         this.setupEconomy();
-        ConfigurationLoader.loadYamlConfiguration(instance, Settings.class, true);
+        ConfigurationLoader.loadYamlConfiguration(NullForge.INSTANCE, Settings.class, true);
         this.initFolder();
         dataManger = new YamlManager();
         dataManger.getDrawData();
         if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
-            new NameHolder(instance, "forge").hook();
+            new NameHolder(NullForge.INSTANCE, "forge").hook();
         }
         // 再次打印一条确认信息
         Bukkit.getConsoleSender().sendMessage("§8| §a插件加载成功!");
@@ -75,21 +72,21 @@ public class Main {
 
 
     private void EnableListener() {
-        instance.getCommand("dz").setExecutor(new OnForge());
-        instance.getCommand("hc").setExecutor(new OnCompose());
-        instance.getCommand("fadmin").setExecutor(new OnAdminCommands());
-        Bukkit.getPluginManager().registerEvents(new OnPlayerBreakBlock(), instance);
-        Bukkit.getPluginManager().registerEvents(new OnPlayerClickInv(), instance);
-        Bukkit.getPluginManager().registerEvents(new OnPlayerForgeItem(), instance);
-        Bukkit.getPluginManager().registerEvents(new OnPlayerJoin(), instance);
-        Bukkit.getPluginManager().registerEvents(new OnPlayerInteract(), instance);
+        NullForge.INSTANCE.getCommand("dz").setExecutor(new OnForge());
+        NullForge.INSTANCE.getCommand("hc").setExecutor(new OnCompose());
+        NullForge.INSTANCE.getCommand("fadmin").setExecutor(new OnAdminCommands());
+        Bukkit.getPluginManager().registerEvents(new OnPlayerBreakBlock(), NullForge.INSTANCE);
+        Bukkit.getPluginManager().registerEvents(new OnPlayerClickInv(), NullForge.INSTANCE);
+        Bukkit.getPluginManager().registerEvents(new OnPlayerForgeItem(), NullForge.INSTANCE);
+        Bukkit.getPluginManager().registerEvents(new OnPlayerJoin(), NullForge.INSTANCE);
+        Bukkit.getPluginManager().registerEvents(new OnPlayerInteract(), NullForge.INSTANCE);
     }
 
     private void initFolder() {
         try {
             File draw;
             File players;
-            File dataFolder = instance.getDataFolder();
+            File dataFolder = NullForge.INSTANCE.getDataFolder();
             if (!dataFolder.exists()) {
                 boolean ignore = dataFolder.mkdir();
             }

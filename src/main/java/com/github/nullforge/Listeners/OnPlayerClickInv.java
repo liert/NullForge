@@ -8,6 +8,7 @@ import com.github.nullforge.GUI.ForgeGUI;
 import com.github.nullforge.GUI.SwitchDrawGUI;
 import com.github.nullforge.Main;
 import com.github.nullforge.MessageLoader;
+import com.github.nullforge.NullForge;
 import com.github.nullforge.Utils.GemUtil;
 import com.github.nullforge.Utils.RandomUtil;
 import java.text.DateFormat;
@@ -412,7 +413,7 @@ public class OnPlayerClickInv
             Inventory rInv = Bukkit.createInventory(null, 9, "§c§l锻造结果");
             rInv.setItem(4, item6);
             ItemStack re = item6.clone();
-            Bukkit.getScheduler().runTaskLater(Main.instance, () -> {
+            Bukkit.getScheduler().runTaskLater(NullForge.INSTANCE, () -> {
                 p.openInventory(rInv);
                 PlayerForgeItemEvent event = new PlayerForgeItemEvent(p, re, dd2);
                 Bukkit.getServer().getPluginManager().callEvent(event);

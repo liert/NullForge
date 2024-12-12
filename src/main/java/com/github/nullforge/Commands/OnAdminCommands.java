@@ -6,6 +6,7 @@ import com.github.nullforge.Data.DrawData;
 import com.github.nullforge.Data.PlayerData;
 import com.github.nullforge.Main;
 import com.github.nullforge.MessageLoader;
+import com.github.nullforge.NullForge;
 import com.github.nullforge.Utils.ExpUtil;
 import com.github.nullforge.Utils.GemUtil;
 import java.util.HashMap;
@@ -207,7 +208,7 @@ public class OnAdminCommands implements CommandExecutor {
     }
 
     private void handleReload(CommandSender sender) {
-        ConfigurationLoader.loadYamlConfiguration(Main.instance, Settings.class, true);
+        ConfigurationLoader.loadYamlConfiguration(NullForge.INSTANCE, Settings.class, true);
         MessageLoader.reloadMessages();
         sender.sendMessage("§c[系统]§a载入配置文件成功!");
     }
