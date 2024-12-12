@@ -83,7 +83,6 @@ public class DrawData {
         return dName;
     }
 
-    // @ConstructorProperties(value={"gem", "formula", "result", "needGemLevel", "needPlayerLevel", "detail", "attrib"})
     public DrawData(String displayName, String gem, List<String> formula, String result, int needGemLevel, int needPlayerLevel, List<String> detail, List<String> attrib) {
         this.displayName = displayName;
         this.gem = gem;

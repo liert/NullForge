@@ -87,13 +87,13 @@ public class YamlManager implements DataManagerImpl {
         for (File file : files) {
             try {
                 YamlConfiguration drawConfig = YamlConfiguration.loadConfiguration(file);
-                String name = drawConfig.getString("name");
-                if (name == null || name.isEmpty()) {
+                String displayName = drawConfig.getString("name");
+                if (displayName == null || displayName.isEmpty()) {
                     Bukkit.getConsoleSender().sendMessage("§c[警告]§a文件 " + file.getName() + " 中配置字段错误.");
                     continue;
                 }
-                msg.add(name);
-                String displayName = drawConfig.getString("name");
+                msg.add(displayName);
+                // String displayName = drawConfig.getString("name");
                 String gem = drawConfig.getString("gem");
                 List<String> formula = drawConfig.getStringList("formula");
                 String result = drawConfig.getString("result");

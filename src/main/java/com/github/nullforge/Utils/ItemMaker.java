@@ -1,6 +1,7 @@
 package com.github.nullforge.Utils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -37,7 +38,7 @@ public class ItemMaker {
         return item;
     }
 
-    public static ItemStack create(int ID, int s, String name, String ... lore) {
+    public static ItemStack create(int ID, int s, String name, String... lore) {
         ItemStack item = new ItemStack(Material.getMaterial(ID));
         if (s > 0) {
             item.setDurability((short)s);
