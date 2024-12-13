@@ -43,8 +43,6 @@ public class OnPlayerClickInv implements Listener {
 
     @EventHandler
     public void click(InventoryClickEvent e) {
-        // ItemStack gemFail;
-        // ItemStack gem2;
         Player p = (Player) e.getWhoClicked();
         if (e.getInventory().getTitle().equals("§c§l请选择你需要锻造的图纸")) {
             int slot = e.getRawSlot();

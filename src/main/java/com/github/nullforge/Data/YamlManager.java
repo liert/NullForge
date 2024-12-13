@@ -66,7 +66,10 @@ public class YamlManager implements DataManagerImpl {
             boolean ignore = drawDataFolder.mkdirs();
             Bukkit.getConsoleSender().sendMessage("§c[系统]§a创建了 'draw' 文件夹.");
         }
-        NullForge.INSTANCE.saveResource("draw/example.yml", false);
+        File defaultDrawFile = new File(drawDataFolder, "example.yml");
+        if (!defaultDrawFile.exists()) {
+            NullForge.INSTANCE.saveResource("draw/example.yml", true);
+        }
         // 列出并加载现有的 .yml 文件
         File[] files = drawDataFolder.listFiles(pathname -> {
             String name = pathname.getName();
