@@ -1,7 +1,6 @@
 package com.github.nullforge.Utils;
 
 import com.github.nullforge.Config.Settings;
-
 import java.util.List;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;

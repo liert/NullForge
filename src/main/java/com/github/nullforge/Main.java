@@ -3,7 +3,7 @@ package com.github.nullforge;
 import com.github.nullforge.Commands.OnAdminCommands;
 import com.github.nullforge.Commands.OnCompose;
 import com.github.nullforge.Commands.OnForge;
-import com.github.nullforge.Config.ConfigurationLoader;
+import com.github.nullcore.Config.ConfigurationLoader;
 import com.github.nullforge.Config.Settings;
 import com.github.nullforge.Data.DataManagerImpl;
 import com.github.nullforge.Data.YamlManager;

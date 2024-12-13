@@ -1,8 +1,9 @@
 package com.github.nullforge.Commands;
 
-import com.github.nullforge.Config.ConfigurationLoader;
+import com.github.nullcore.Config.ConfigurationLoader;
 import com.github.nullforge.Config.Settings;
 import com.github.nullforge.Data.DrawData;
+import com.github.nullforge.Data.DrawManager;
 import com.github.nullforge.Data.PlayerData;
 import com.github.nullforge.Main;
 import com.github.nullforge.MessageLoader;
@@ -21,9 +22,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 public class OnAdminCommands implements CommandExecutor {
-    public static Map<String, DrawData> tempMap = new HashMap<>();
-    public static Map<String, String> nameTempMap = new HashMap<>();
-
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (command.getName().equalsIgnoreCase("fadmin")) {
@@ -84,8 +82,8 @@ public class OnAdminCommands implements CommandExecutor {
 
     private void handleList(CommandSender sender) {
         sender.sendMessage("§b图纸列表:");
-        for (String s : DrawData.DrawMap.keySet()) {
-            sender.sendMessage("§c§l图纸名§f: " + Main.dataManger.getDrawName(s));
+        for (String name: DrawManager.getDrawNames()) {
+            sender.sendMessage("§c§l图纸名§f: " + name);
         }
     }
 
@@ -95,32 +93,23 @@ public class OnAdminCommands implements CommandExecutor {
             sender.sendMessage("§7 - §ffadmin give <§c§o图纸名字§f> <§c§o玩家名§f>");
             return;
         }
-
-        String dName = args[1];
+        String fileName = args[1];
         Player targetPlayer = null;
-
         if (args.length >= 3) {
             targetPlayer = Bukkit.getPlayer(args[2]);
         } else if (sender instanceof Player) {
             targetPlayer = (Player) sender;
         }
-
         if (targetPlayer == null) {
             sender.sendMessage("§c[系统]§a指定的玩家不在线或未提供玩家名!");
             return;
         }
-
-        if (dName.contains("&")) {
-            dName = dName.replaceAll("&", "§");
-        }
-
-        if (!DrawData.DrawMap.containsKey(dName)) {
+        DrawData drawData = DrawManager.getDrawDataOfFileName(fileName);
+        if (drawData == null) {
             sender.sendMessage("§c[系统]§a不存在这个图纸!");
             return;
         }
-
-        DrawData dd = DrawData.DrawMap.get(dName);
-        targetPlayer.getInventory().addItem(dd.getDrawItem());
+        targetPlayer.getInventory().addItem(drawData.getDrawItem());
         sender.sendMessage("§c[系统]§a图纸已经给予到" + targetPlayer.getName() + "的背包中");
     }
 
@@ -202,7 +191,7 @@ public class OnAdminCommands implements CommandExecutor {
     }
 
     private void handleLoadDraw(CommandSender sender) {
-        DrawData.DrawMap.clear();
+        DrawManager.reset();
         Main.dataManger.getDrawData();
         sender.sendMessage("§c[系统]§a载入图纸信息成功!");
     }

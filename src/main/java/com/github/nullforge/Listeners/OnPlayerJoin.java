@@ -7,8 +7,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
-public class OnPlayerJoin
-implements Listener {
+public class OnPlayerJoin implements Listener {
     @EventHandler
     public void join(PlayerJoinEvent e) {
         Main.dataManger.getPlayerData(e.getPlayer());

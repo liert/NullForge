@@ -2,6 +2,7 @@ package com.github.nullforge.Listeners;
 
 import com.github.nullforge.Config.Settings;
 import com.github.nullforge.Data.DrawData;
+import com.github.nullforge.Data.DrawManager;
 import com.github.nullforge.Data.PlayerData;
 import com.github.nullforge.Event.PlayerForgeItemEvent;
 import com.github.nullforge.GUI.ForgeGUI;
@@ -33,8 +34,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
 
-public class OnPlayerClickInv
-        implements Listener {
+public class OnPlayerClickInv implements Listener {
     public static Map<String, List<ItemStack>> tempItemMap = new HashMap<>();
     public static Map<String, DrawData> drawPlayerMap = new HashMap<>();
     public static List<String> nextList = new ArrayList<>();
@@ -43,13 +43,11 @@ public class OnPlayerClickInv
 
     @EventHandler
     public void click(InventoryClickEvent e) {
-        int level;
-        ItemStack gemFail;
-        ItemStack gem2;
-        int slot;
-        Player p = (Player)e.getWhoClicked();
+        // ItemStack gemFail;
+        // ItemStack gem2;
+        Player p = (Player) e.getWhoClicked();
         if (e.getInventory().getTitle().equals("§c§l请选择你需要锻造的图纸")) {
-            slot = e.getRawSlot();
+            int slot = e.getRawSlot();
             if (slot < 0) {
                 return;
             }
@@ -91,7 +89,7 @@ public class OnPlayerClickInv
             p.openInventory(ForgeGUI.getGUI(dd.getDrawItem()));
         }
         if (e.getInventory().getTitle().equals("§c锻造系统")) {
-            slot = e.getRawSlot();
+            int slot = e.getRawSlot();
             if (slot < 0) {
                 return;
             }
@@ -113,42 +111,42 @@ public class OnPlayerClickInv
                 p.sendMessage(MessageLoader.getMessage("gui-gem-empty")); //宝石不能为空
                 return;
             }
-            gem2 = inv.getItem(10).clone();
-            gemFail = inv.getItem(13).clone();
-            if (gemFail.getAmount() != 1) {
+            ItemStack draw = inv.getItem(10).clone();
+            ItemStack gemstone = inv.getItem(13).clone();
+            if (gemstone.getAmount() != 1) {
                 p.sendMessage(MessageLoader.getMessage("gui-gem-1")); //宝石必须为1
                 return;
             }
-            DrawData dd2 = OnPlayerClickInv.getDraw(gem2);
-            if (dd2 == null) {
+            DrawData drawData = DrawManager.getDraw(draw);
+            if (drawData == null) {
                 p.sendMessage(MessageLoader.getMessage("gui-invalid-draw")); //图纸不合法
                 return;
             }
-            if (!this.getAttrib(dd2)) {
+            if (!this.getAttrib(drawData)) {
                 p.sendMessage(MessageLoader.getMessage("gui-invalid-item")); //输出物品不合法
                 return;
             }
-            int success = PlayerData.pMap.get(p.getName()).getLevel();
-            if (success < dd2.getNeedPlayerLevel()) {
-                p.sendMessage(MessageLoader.getMessage("gui-not-level") + dd2.getNeedPlayerLevel()); //锻造等级不足
+            int playerLevel = PlayerData.pMap.get(p.getName()).getLevel();
+            if (playerLevel < drawData.getNeedPlayerLevel()) {
+                p.sendMessage(MessageLoader.getMessage("gui-not-level") + drawData.getNeedPlayerLevel()); //锻造等级不足
                 return;
             }
-            ItemStack item = dd2.getGem();
-            level = this.getGemLevel(item, gemFail);
-            if (level <= 0) {
+            ItemStack item = drawData.getGem();
+            int gemstoneLevel = this.getGemLevel(item, gemstone);
+            if (gemstoneLevel <= 0) {
                 p.sendMessage(MessageLoader.getMessage("gui-not-gem")); //放置的不是有效的锻造宝石
                 return;
             }
-            if (level < dd2.getNeedGemLevel()) {
-                String message = MessageLoader.getMessage("gui-not-gemlevel").replace("%gemlevel%", String.valueOf(dd2.getNeedGemLevel())); //需要的宝石等级不足
+            if (gemstoneLevel < drawData.getNeedGemLevel()) {
+                String message = MessageLoader.getMessage("gui-not-gemlevel").replace("%gemlevel%", String.valueOf(drawData.getNeedGemLevel())); //需要的宝石等级不足
                 p.sendMessage(message);
                 return;
             }
             unClickList.remove(p.getName());
-            ArrayList<ItemStack> tempList = new ArrayList<>();
-            tempList.add(gemFail);
+            List<ItemStack> tempList = new ArrayList<>();
+            tempList.add(gemstone);
             tempItemMap.put(p.getName(), tempList);
-            drawPlayerMap.put(p.getName(), dd2);
+            drawPlayerMap.put(p.getName(), drawData);
             Inventory fInv = Bukkit.createInventory(null, 54, "§c请放入锻造材料后关闭背包开始锻造");
             nextList.add(p.getName());
             p.openInventory(fInv);
@@ -156,18 +154,18 @@ public class OnPlayerClickInv
         if (e.getInventory().getTitle().equals("§b§l宝石合成")) {
             Inventory inventory = e.getInventory();
             if (e.getClickedInventory().getTitle().equals("§b§l宝石合成")) {
-                gemFail = null;
+                ItemStack gemFail = null;
                 ItemStack over = null;
                 int success = 0;
                 int fail = 0;
-                level = e.getRawSlot();
-                if ((level < 12 || level > 14) && level != 10 && level != 16) {
+                int slot = e.getRawSlot();
+                if ((slot < 12 || slot > 14) && slot != 10 && slot != 16) {
                     e.setCancelled(true);
                 }
-                if (level >= 21 && level <= 23 || level >= 3 && level <= 6) {
+                if (slot >= 21 && slot <= 23 || slot >= 3 && slot <= 6) {
                     if (inventory.getItem(10) != null && inventory.getItem(16) != null) {
                         ItemStack gem1 = inventory.getItem(10).clone();
-                        gem2 = inventory.getItem(16).clone();
+                        ItemStack gem2 = inventory.getItem(16).clone();
                         if (GemUtil.getGemLevel(gem1) != 0 && GemUtil.getGemLevel(gem2) != 0) {
                             if (!GemUtil.isSameGem(gem1, gem2)) {
                                 p.sendMessage(MessageLoader.getMessage("gem-different")); //宝石种类不同
@@ -276,41 +274,42 @@ public class OnPlayerClickInv
             int r;
             String line1;
             p.sendMessage(MessageLoader.getMessage("forge-ing")); //锻造中...
-            if (!drawPlayerMap.containsKey(p.getName())) {
-                return;
-            }
-            if (!tempItemMap.containsKey(p.getName())) {
+            if (!drawPlayerMap.containsKey(p.getName()) || !tempItemMap.containsKey(p.getName())) {
                 return;
             }
             inv = e.getInventory();
-            DrawData dd2 = drawPlayerMap.get(p.getName());
-            List<ItemStack> flist = dd2.getFormula();
+            DrawData dd = drawPlayerMap.get(p.getName());
+            List<ItemStack> flist = dd.getFormula();
             int count = 0;
             ArrayList<ItemStack> ilist = new ArrayList<>();
             int addChance = 0;
             for (int j = 0; j < inv.getSize(); ++j) {
-                String start;
-                String[] raws;
-                ItemMeta meta;
                 if (inv.getItem(j) == null) continue;
-                ItemStack item4 = inv.getItem(j).clone();
-                if (item4.hasItemMeta() && (meta = item4.getItemMeta()).hasLore() && (line1 = meta.getLore().get(0)).startsWith((raws = (start = Settings.I.Attrib_Up_Item_Lore).split("<chance>"))[0])) {
-                    r = raws.length;
-                    for (int n2 = 0; n2 < r; ++n2) {
-                        String s = raws[n2];
-                        line1 = line1.replaceAll(s, "");
-                    }
-                    addChance += Integer.parseInt(line1) * item4.getAmount();
+                ItemStack tempItem = inv.getItem(j).clone();
+                if (!tempItem.hasItemMeta()) {
+                    ilist.add(tempItem);
                     continue;
                 }
-                ilist.add(inv.getItem(j).clone());
+                ItemMeta tempMeta = tempItem.getItemMeta();
+                if (!tempMeta.hasLore()) {
+                    ilist.add(tempItem);
+                    continue;
+                }
+                List<String> tempLore = tempMeta.getLore();
+                String[] luckLore = Settings.I.Attrib_Up_Item_Lore.split("<chance>");
+                String tempFlag = luckLore[0];
+                if (tempLore.get(0).startsWith(tempFlag)) {
+                    addChance += Integer.parseInt(luckLore[1]) * tempItem.getAmount();
+                    continue;
+                }
+                ilist.add(tempItem);
             }
-            block6: for (ItemStack fitem : flist) {
+            for (ItemStack fitem : flist) {
                 for (ItemStack item5 : ilist) {
                     if (!item5.equals(fitem)) continue;
                     ilist.remove(item5);
                     ++count;
-                    continue block6;
+                    break;
                 }
             }
             if (count != flist.size()) {
@@ -375,11 +374,11 @@ public class OnPlayerClickInv
             }
             preceText.append("§b]");
             rd = min + r;
-            ItemStack item6 = dd2.getResult().clone();
+            ItemStack item6 = dd.getResult().clone();
             ItemMeta meta2 = item6.getItemMeta();
             List<String> lore = meta2.hasLore() ? meta2.getLore() : new ArrayList<>();
             Pattern pa = Pattern.compile("\\([^(]+\\)");
-            List<String> attrib = dd2.getAttrib();
+            List<String> attrib = dd.getAttrib();
             for (String attribute : attrib) {
                 Matcher m = pa.matcher(attribute);
                 ArrayList<Integer> ori = new ArrayList<>();
@@ -414,7 +413,7 @@ public class OnPlayerClickInv
             ItemStack re = item6.clone();
             Bukkit.getScheduler().runTaskLater(NullForge.INSTANCE, () -> {
                 p.openInventory(rInv);
-                PlayerForgeItemEvent event = new PlayerForgeItemEvent(p, re, dd2);
+                PlayerForgeItemEvent event = new PlayerForgeItemEvent(p, re, dd);
                 Bukkit.getServer().getPluginManager().callEvent(event);
                 p.sendMessage(MessageLoader.getMessage("forge-finish")); //锻造成功
                 String playerName = p.getName();
@@ -446,22 +445,6 @@ public class OnPlayerClickInv
         return true;
     }
 
-    public static DrawData getDraw(ItemStack item) {
-        if (item.getTypeId() != Settings.I.Draw_Item_ID) {
-            return null;
-        }
-        if (!item.hasItemMeta()) {
-            return null;
-        }
-        ItemMeta meta = item.getItemMeta();
-        if (!meta.hasLore()) {
-            return null;
-        }
-        List<String> lore = meta.getLore();
-        String line0 = lore.get(0);
-        return DrawData.DrawMap.getOrDefault(line0, null);
-    }
-
     public int getGemLevel(ItemStack gem, ItemStack item) {
         if (item.getType() != gem.getType()) {
             return -1;
@@ -488,21 +471,19 @@ public class OnPlayerClickInv
         int level = 0;
         for (int i = 0; i < gemLore.size(); ++i) {
             if (i != 1) {
-                if (gemLore.get(i).equals(itemLore.get(i))) continue;
+                if (gemLore.get(i).equals(itemLore.get(i))) {
+                    continue;
+                }
                 return -1;
             }
-            if (!itemLore.get(i).contains(Settings.I.Gem_Level_Text)) {
+            String levelLore = itemLore.get(i);
+            if (!levelLore.startsWith(Settings.I.Gem_Level_Color)) {
                 return -1;
             }
-            if (itemLore.get(i).length() <= 2) {
+            if (!levelLore.endsWith(Settings.I.Gem_Level_Text)) {
                 return -1;
             }
-            if (!itemLore.get(i).contains(Settings.I.Gem_Level_Color)) {
-                return -1;
-            }
-            String raw = itemLore.get(i);
-            String[] ss = raw.split(Settings.I.Gem_Level_Color);
-            level = ss[1].length();
+            level = levelLore.split(Settings.I.Gem_Level_Color)[1].length();
         }
         return level;
     }

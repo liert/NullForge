@@ -61,50 +61,26 @@ public class YamlManager implements DataManagerImpl {
     @Override
     public void getDrawData() {
         File drawDataFolder = new File(NullForge.INSTANCE.getDataFolder(), "draw");
-
         // 确保目录存在
         if (!drawDataFolder.exists()) {
             boolean ignore = drawDataFolder.mkdirs();
             Bukkit.getConsoleSender().sendMessage("§c[系统]§a创建了 'draw' 文件夹.");
         }
-
         NullForge.INSTANCE.saveResource("draw/example.yml", false);
-
         // 列出并加载现有的 .yml 文件
         File[] files = drawDataFolder.listFiles(pathname -> {
             String name = pathname.getName();
             return name.toLowerCase().endsWith(".yml");
         });
-
         if (files == null || files.length == 0) {
             Bukkit.getConsoleSender().sendMessage("§c[系统]§a没有找到任何图纸配置文件!");
             return;
         }
 
-        List<String> msg = new ArrayList<>();
         Date first = new Date();
-        int loadedCount = 0; // 记录成功加载的数量
         for (File file : files) {
             try {
-                YamlConfiguration drawConfig = YamlConfiguration.loadConfiguration(file);
-                String displayName = drawConfig.getString("name");
-                if (displayName == null || displayName.isEmpty()) {
-                    Bukkit.getConsoleSender().sendMessage("§c[警告]§a文件 " + file.getName() + " 中配置字段错误.");
-                    continue;
-                }
-                msg.add(displayName);
-                // String displayName = drawConfig.getString("name");
-                String gem = drawConfig.getString("gem");
-                List<String> formula = drawConfig.getStringList("formula");
-                String result = drawConfig.getString("result");
-                int gemLevel = drawConfig.getInt("gemlevel");
-                int playerLevel = drawConfig.getInt("playerlevel");
-                List<String> detail = drawConfig.getStringList("detail");
-                List<String> attrib = drawConfig.getStringList("attrib");
-
-                DrawData dd = new DrawData(displayName, gem, formula, result, gemLevel, playerLevel, detail, attrib);
-                DrawData.DrawMap.put(file.getName().split("\\.")[0], dd);
-                loadedCount++;
+                DrawData.CreateDrawData(file);
             } catch (Exception e) {
                 Bukkit.getConsoleSender().sendMessage("§c[错误]§a加载文件 " + file.getName() + " 时发生异常: " + e.getMessage());
                 e.printStackTrace();
@@ -112,7 +88,7 @@ public class YamlManager implements DataManagerImpl {
         }
 
         long diff = new Date().getTime() - first.getTime();
-        if (loadedCount > 0) {
+        if (DrawManager.getDrawCount() > 0) {
             // 打印顶部边框
             Bukkit.getConsoleSender().sendMessage("§8=============================================");
             Bukkit.getConsoleSender().sendMessage("§8| §a§lNullForge §8- §aVersion: §b1.0.0");
@@ -120,13 +96,13 @@ public class YamlManager implements DataManagerImpl {
 
             // 打印加载成功的文件名，并添加序号
             int index = 1;
-            for (String s : msg) {
+            for (String s : DrawManager.getDrawNames()) {
                 Bukkit.getConsoleSender().sendMessage(String.format("§8|§a§l%2d. §r%s §a§l[已加载]", index++, s));
             }
 
             // 打印底部边框和总结信息
             Bukkit.getConsoleSender().sendMessage("§8=============================================");
-            Bukkit.getConsoleSender().sendMessage(String.format("§8| §a共加载了 %d 个图纸, 耗时 %d 毫秒", loadedCount, diff));
+            Bukkit.getConsoleSender().sendMessage(String.format("§8| §a共加载了 %d 个图纸, 耗时 %d 毫秒", DrawManager.getDrawCount(), diff));
             Bukkit.getConsoleSender().sendMessage("§8=============================================");
         } else {
             // 如果没有加载任何文件，则打印提示信息
@@ -138,23 +114,20 @@ public class YamlManager implements DataManagerImpl {
 
     @Override
     public void saveDrawData() {
-        File drawDataFolder = new File(NullForge.INSTANCE.getDataFolder(), "draw");
-        for (String name : DrawData.DrawMap.keySet()) {
-            File drawConfigFile = new File(drawDataFolder, name + ".yml");
-            YamlConfiguration drawConfig = YamlConfiguration.loadConfiguration(drawConfigFile);
-            DrawData dd = DrawData.DrawMap.get(name);
-            drawConfig.set("gem", ItemString.getString(dd.getGem()));
-            List<ItemStack> list = dd.getFormula();
+        for (DrawData drawData : DrawManager.getDrawData()) {
+            YamlConfiguration drawConfig = YamlConfiguration.loadConfiguration(drawData.getFile());
+            drawConfig.set("gem", ItemString.getString(drawData.getGem()));
+            List<ItemStack> list = drawData.getFormula();
             StringBuilder sb = new StringBuilder();
             for (ItemStack item : list) {
                 sb.append(ItemString.getString(item)).append(",");
             }
             drawConfig.set("formula", sb.toString());
-            drawConfig.set("result", ItemString.getString(dd.getResult()));
-            drawConfig.set("gemlevel", dd.getNeedGemLevel());
-            drawConfig.set("playerlevel", dd.getNeedPlayerLevel());
-            drawConfig.set("detail", dd.getDetail());
-            drawConfig.set("attrib", dd.getAttrib());
+            drawConfig.set("result", ItemString.getString(drawData.getResult()));
+            drawConfig.set("gemlevel", drawData.getNeedGemLevel());
+            drawConfig.set("playerlevel", drawData.getNeedPlayerLevel());
+            drawConfig.set("detail", drawData.getDetail());
+            drawConfig.set("attrib", drawData.getAttrib());
         }
     }
 

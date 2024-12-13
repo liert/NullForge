@@ -3,19 +3,18 @@ package com.github.nullforge.Data;
 import com.github.nullforge.Config.Settings;
 import com.github.nullforge.Utils.ItemMaker;
 import com.github.nullforge.Utils.ItemString;
+import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 public class DrawData {
-    public static Map<String, DrawData> DrawMap = new HashMap<>();
-    // 图纸Lore中显示的名字
+    private final File file;
     private final String displayName;
     private String gem;
     private List<String> formula;
@@ -24,6 +23,22 @@ public class DrawData {
     private int needPlayerLevel;
     private List<String> detail;
     private List<String> attrib;
+
+    public static void CreateDrawData(File file) {
+        new DrawData(file);
+    }
+
+    public File getFile() {
+        return file;
+    }
+
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    public String getFileName() {
+        return file.getName();
+    }
 
     public ItemStack getGem() {
         return ItemString.getItem(this.gem);
@@ -58,10 +73,6 @@ public class DrawData {
     }
 
     public ItemStack getDrawItem() {
-        String dName = DrawData.getDrawName(this);
-        if (dName == null) {
-            return null;
-        }
         ItemStack item = ItemMaker.create(Settings.I.Draw_Item_ID, 0, "§b§l锻造图纸", this.displayName, "§c该图纸需要锻造等级:§b§l" + this.needPlayerLevel);
         ItemMeta meta = item.getItemMeta();
         List<String> lore = meta.getLore();
@@ -73,25 +84,18 @@ public class DrawData {
         return item;
     }
 
-    // 获取的是图纸文件名
-    public static String getDrawName(DrawData dd) {
-        String dName = null;
-        for (String name : DrawMap.keySet()) {
-            if (!dd.equals(DrawMap.get(name))) continue;
-            dName = name;
-        }
-        return dName;
-    }
-
-    public DrawData(String displayName, String gem, List<String> formula, String result, int needGemLevel, int needPlayerLevel, List<String> detail, List<String> attrib) {
-        this.displayName = displayName;
-        this.gem = gem;
-        this.formula = formula;
-        this.result = result;
-        this.needGemLevel = needGemLevel;
-        this.needPlayerLevel = needPlayerLevel;
-        this.detail = detail;
-        this.attrib = attrib;
+    private DrawData(File file) {
+        YamlConfiguration drawConfig = YamlConfiguration.loadConfiguration(file);
+        this.file = file;
+        this.displayName = drawConfig.getString("name");
+        this.gem = drawConfig.getString("gem");
+        this.formula = drawConfig.getStringList("formula");
+        this.result = drawConfig.getString("result");
+        this.needGemLevel = drawConfig.getInt("gemlevel");
+        this.needPlayerLevel = drawConfig.getInt("playerlevel");
+        this.detail = drawConfig.getStringList("detail");
+        this.attrib = drawConfig.getStringList("attrib");
+        DrawManager.addDraw(this);
     }
 
     public int getNeedGemLevel() {
@@ -189,5 +193,7 @@ public class DrawData {
     public String toString() {
         return "DrawData(gem=" + this.getGem() + ", formula=" + this.getFormula() + ", result=" + this.getResult() + ", needGemLevel=" + this.getNeedGemLevel() + ", needPlayerLevel=" + this.getNeedPlayerLevel() + ", detail=" + this.getDetail() + ", attrib=" + this.getAttrib() + ")";
     }
+
+
 }
 

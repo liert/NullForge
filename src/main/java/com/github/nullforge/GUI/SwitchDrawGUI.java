@@ -1,6 +1,7 @@
 package com.github.nullforge.GUI;
 
 import com.github.nullforge.Data.DrawData;
+import com.github.nullforge.Data.DrawManager;
 import com.github.nullforge.Data.PlayerData;
 import com.github.nullforge.Listeners.OnPlayerClickInv;
 import com.github.nullforge.Utils.ItemMaker;
@@ -19,23 +20,22 @@ public class SwitchDrawGUI {
     public static Map<String, List<DrawData>> switchMap = new HashMap<>();
 
     public static Inventory getGUI(Player p, int index) {
-        int i;
         Inventory inv = Bukkit.createInventory(null, 45, "§c§l请选择你需要锻造的图纸");
         ItemStack up = ItemMaker.create(Material.STAINED_GLASS_PANE, (short)14, "§c§l上一页", "");
         ItemStack down = ItemMaker.create(Material.STAINED_GLASS_PANE, (short)5, "§a§l下一页", "");
         inv.setItem(36, up);
         inv.setItem(44, down);
         PlayerData pd = PlayerData.pMap.get(p.getName());
-        List<String> drawName = pd.getLearn();
-        ArrayList<DrawData> switchTemp = new ArrayList<>();
+        List<String> draws = pd.getLearn();
+        List<DrawData> switchTemp = new ArrayList<>();
         int count = 0;
-        int start = i = 0 + index * 36;
-        while (i < drawName.size()) {
-            String s = drawName.get(i);
-            if (DrawData.DrawMap.containsKey(s)) {
+        int startIndex = index * 36;
+        while (startIndex < draws.size()) {
+            String draw = draws.get(startIndex++);
+            DrawData drawData = DrawManager.getDraw(draw);
+            if (drawData != null) {
                 if (count >= 36) break;
-                DrawData dd = DrawData.DrawMap.get(s);
-                ItemStack item = dd.getDrawItem();
+                ItemStack item = drawData.getDrawItem();
                 if (item != null) {
                     ItemMeta meta = item.getItemMeta();
                     List<String> lore = meta.getLore();
@@ -43,11 +43,10 @@ public class SwitchDrawGUI {
                     meta.setLore(lore);
                     item.setItemMeta(meta);
                     inv.setItem(count, item);
-                    switchTemp.add(dd);
+                    switchTemp.add(drawData);
                     ++count;
                 }
             }
-            ++i;
         }
         switchMap.put(p.getName(), switchTemp);
         OnPlayerClickInv.indexMap.put(p.getName(), index);
