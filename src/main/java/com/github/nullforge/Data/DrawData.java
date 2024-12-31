@@ -37,7 +37,7 @@ public class DrawData {
     }
 
     public String getFileName() {
-        return file.getName();
+        return file.getName().split("\\.")[0];
     }
 
     public ItemStack getGem() {

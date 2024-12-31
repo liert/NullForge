@@ -3,6 +3,8 @@ package com.github.nullforge.Utils;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Random;
+import java.util.TreeMap;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class RandomUtil {
     public static Integer probabInt(Map<Integer, Float> map) {
@@ -21,18 +23,30 @@ public class RandomUtil {
     }
 
     public static String probabString(Map<String, Float> map) {
-        Float total = 0.0f;
-        LinkedHashMap<Float, String> tempMap = new LinkedHashMap<>();
+        float total = 0.0f;
+        TreeMap<Float, String> cumulativeMap = new TreeMap<>();
+        for (Map.Entry<String, Float> entry : normalizeWeights(map).entrySet()) {
+            total += entry.getValue();
+            if (entry.getValue() > 0) {
+                cumulativeMap.put(total, entry.getKey());
+            }
+        }
+        float randomValue = ThreadLocalRandom.current().nextFloat() * total;
+        return cumulativeMap.ceilingEntry(randomValue).getValue();
+    }
+
+    private static Map<String, Float> normalizeWeights(Map<String, Float> map) {
+        Map<String, Float> normalizedWeights = new LinkedHashMap<>();
+        float totalWeight = 0f;
+        // 计算总权重
+        for (Float weight : map.values()) {
+            totalWeight += weight;
+        }
+        // 归一化
         for (Map.Entry<String, Float> entry : map.entrySet()) {
-            total = total + entry.getValue();
-            tempMap.put(total, entry.getKey());
+            normalizedWeights.put(entry.getKey(), entry.getValue() / totalWeight);
         }
-        float index = new Random().nextFloat() * total;
-        for (Map.Entry<Float, String> next : tempMap.entrySet()) {
-            if (!(index < next.getKey())) continue;
-            return next.getValue();
-        }
-        return null;
+        return normalizedWeights;
     }
 }
 

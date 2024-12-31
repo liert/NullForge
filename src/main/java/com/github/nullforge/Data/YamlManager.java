@@ -102,7 +102,6 @@ public class YamlManager implements DataManagerImpl {
             for (String s : DrawManager.getDrawNames()) {
                 Bukkit.getConsoleSender().sendMessage(String.format("§8|§a§l%2d. §r%s §a§l[已加载]", index++, s));
             }
-
             // 打印底部边框和总结信息
             Bukkit.getConsoleSender().sendMessage("§8=============================================");
             Bukkit.getConsoleSender().sendMessage(String.format("§8| §a共加载了 %d 个图纸, 耗时 %d 毫秒", DrawManager.getDrawCount(), diff));

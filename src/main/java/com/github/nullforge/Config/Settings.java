@@ -14,7 +14,7 @@ public class Settings {
     public int Gem_Level_Up_Chance;
     public Map<Integer, Integer> Gem_Level_Chance;
     public Map<String, String> Forge_Attrib;
-    public Map<String, Integer> Forge_Chance;
+    public Map<String, Float> Forge_Chance;
     public Map<String, String> Attrib_Level_Text;
     public String Attrib_Perce_Text;
     public Map<Integer, Integer> Forge_Exp;

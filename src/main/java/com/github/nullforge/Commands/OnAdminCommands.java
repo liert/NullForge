@@ -199,6 +199,8 @@ public class OnAdminCommands implements CommandExecutor {
     private void handleReload(CommandSender sender) {
         ConfigurationLoader.loadYamlConfiguration(NullForge.INSTANCE, Settings.class, true);
         MessageLoader.reloadMessages();
+        DrawManager.reset();
+        Main.dataManger.getDrawData();
         sender.sendMessage("§c[系统]§a载入配置文件成功!");
     }
 

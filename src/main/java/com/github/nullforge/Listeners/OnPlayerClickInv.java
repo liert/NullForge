@@ -13,12 +13,7 @@ import com.github.nullforge.NullForge;
 import com.github.nullforge.Utils.GemUtil;
 import com.github.nullforge.Utils.RandomUtil;
 import java.text.DateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.bukkit.Bukkit;
@@ -33,8 +28,10 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.jetbrains.annotations.NotNull;
 
 public class OnPlayerClickInv implements Listener {
+    public static Map<String, Map<ItemStack, Integer>> middleItems = new HashMap<>();
     public static Map<String, List<ItemStack>> tempItemMap = new HashMap<>();
     public static Map<String, DrawData> drawPlayerMap = new HashMap<>();
     public static List<String> nextList = new ArrayList<>();
@@ -120,10 +117,6 @@ public class OnPlayerClickInv implements Listener {
                 p.sendMessage(MessageLoader.getMessage("gui-invalid-draw")); //图纸不合法
                 return;
             }
-            if (!this.getAttrib(drawData)) {
-                p.sendMessage(MessageLoader.getMessage("gui-invalid-item")); //输出物品不合法
-                return;
-            }
             int playerLevel = PlayerData.pMap.get(p.getName()).getLevel();
             if (playerLevel < drawData.getNeedPlayerLevel()) {
                 p.sendMessage(MessageLoader.getMessage("gui-not-level") + drawData.getNeedPlayerLevel()); //锻造等级不足
@@ -144,6 +137,7 @@ public class OnPlayerClickInv implements Listener {
             List<ItemStack> tempList = new ArrayList<>();
             tempList.add(gemstone);
             tempItemMap.put(p.getName(), tempList);
+            addMiddleItem(p.getPlayer(), gemstone);
             drawPlayerMap.put(p.getName(), drawData);
             Inventory fInv = Bukkit.createInventory(null, 54, "§c请放入锻造材料后关闭背包开始锻造");
             nextList.add(p.getName());
@@ -226,9 +220,9 @@ public class OnPlayerClickInv implements Listener {
 
     @EventHandler
     public void close(InventoryCloseEvent e) {
-        Inventory inv;
-        Player p = (Player)e.getPlayer();
+        Player p = (Player) e.getPlayer();
         if (e.getInventory().getTitle().equals("§c锻造系统")) {
+            // TODO: 还未修复，锻造失败不返还宝石的Bug
             if (unClickList.contains(p.getName())) {
                 Inventory inv2 = e.getInventory();
                 if (inv2.getItem(13) != null) {
@@ -250,7 +244,7 @@ public class OnPlayerClickInv implements Listener {
             p.sendMessage(MessageLoader.getMessage("forge-fail")); //锻造失败
         }
         if (e.getInventory().getTitle().equals("§b§l宝石合成")) {
-            inv = e.getInventory();
+            Inventory inv = e.getInventory();
             ArrayList<ItemStack> give = new ArrayList<>();
             if (inv.getItem(10) != null) {
                 give.add(inv.getItem(10));
@@ -267,62 +261,73 @@ public class OnPlayerClickInv implements Listener {
             }
         }
         if (e.getInventory().getTitle().equals("§c请放入锻造材料后关闭背包开始锻造")) {
-            String at2;
             int rd;
-            int r;
-            String line1;
-            p.sendMessage(MessageLoader.getMessage("forge-ing")); //锻造中...
             if (!drawPlayerMap.containsKey(p.getName()) || !tempItemMap.containsKey(p.getName())) {
                 return;
             }
-            inv = e.getInventory();
+            Inventory inv = e.getInventory();
             DrawData dd = drawPlayerMap.get(p.getName());
-            List<ItemStack> flist = dd.getFormula();
-            int count = 0;
-            ArrayList<ItemStack> ilist = new ArrayList<>();
+            List<ItemStack> formulaList = dd.getFormula();
+            List<ItemStack> itemList = new ArrayList<>();
             int addChance = 0;
+            // 获取玩家放入的材料
             for (int j = 0; j < inv.getSize(); ++j) {
                 if (inv.getItem(j) == null) continue;
                 ItemStack tempItem = inv.getItem(j).clone();
                 if (!tempItem.hasItemMeta()) {
-                    ilist.add(tempItem);
+                    itemList.add(tempItem);
                     continue;
                 }
                 ItemMeta tempMeta = tempItem.getItemMeta();
                 if (!tempMeta.hasLore()) {
-                    ilist.add(tempItem);
+                    itemList.add(tempItem);
                     continue;
                 }
                 List<String> tempLore = tempMeta.getLore();
                 String[] luckLore = Settings.I.Attrib_Up_Item_Lore.split("<chance>");
-                String tempFlag = luckLore[0];
-                if (tempLore.get(0).startsWith(tempFlag)) {
-                    addChance += Integer.parseInt(luckLore[1]) * tempItem.getAmount();
+                if (tempLore.get(0).startsWith(luckLore[0])) {
+                    addChance += Integer.parseInt(tempLore.get(0).replace(luckLore[0], "")) * tempItem.getAmount();
                     continue;
                 }
-                ilist.add(tempItem);
+                itemList.add(tempItem);
             }
-            for (ItemStack fitem : flist) {
-                for (ItemStack item5 : ilist) {
-                    if (!item5.equals(fitem)) continue;
-                    ilist.remove(item5);
-                    ++count;
-                    break;
-                }
-            }
-            if (count != flist.size()) {
-                PlayerInventory pInv = p.getInventory();
-                for (int k = 0; k < inv.getSize(); ++k) {
-                    if (inv.getItem(k) == null) continue;
-                    pInv.addItem(inv.getItem(k));
-                }
-                List<ItemStack> tList = tempItemMap.get(p.getName());
-                for (ItemStack item5 : tList) {
-                    pInv.addItem(item5);
-                }
-                p.sendMessage(MessageLoader.getMessage("forge-null")); //材料不匹配
+            // 没有放入锻造材料，返回宝石
+            if (itemList.isEmpty()) {
+                playerAddItem(p);
+                p.sendMessage(MessageLoader.getMessage("forge-null"));
                 return;
             }
+            // 统计有效材料的数量，
+            Map<ItemStack, Integer> total = new HashMap<>();
+            for (ItemStack fItem: formulaList) {
+                Iterator<ItemStack> iterator = itemList.iterator();
+                while (iterator.hasNext()) {
+                    ItemStack item = iterator.next();
+                    if (!item.isSimilar(fItem)) continue;
+                    ItemStack sample = item.clone();
+                    sample.setAmount(1);
+                    if (total.containsKey(sample)) {
+                        total.compute(sample, (k, v) -> v + item.getAmount());
+                    } else {
+                        total.put(sample, item.getAmount());
+                    }
+                    iterator.remove();
+                }
+            }
+            // 放入的不是锻造材料，返回物品和宝石
+            if (total.isEmpty()) {
+                p.sendMessage(MessageLoader.getMessage("forge-null"));
+                playerAddItem(p, itemList, null);
+                return;
+            }
+            // 放入的材料不足以锻造一个物品，返回材料和宝石
+            int finalCount = getFinalCount(total, formulaList);
+            if (finalCount <= 0) {
+                p.sendMessage(MessageLoader.getMessage("forge-null"));
+                playerAddItem(p, itemList, total);
+                return;
+            }
+            p.sendMessage(MessageLoader.getMessage("forge-ing")); //锻造中...
             if (addChance > 0) {
                 // 获取原始消息字符串
                 String message = MessageLoader.getMessage("forge-hoist"); //配置增加
@@ -331,116 +336,125 @@ public class OnPlayerClickInv implements Listener {
                 // 发送格式化后的消息给玩家
                 p.sendMessage(formattedMessage);
             }
-            HashMap<String, Float> map = new HashMap<>();
-            for (String s22 : Settings.I.Forge_Chance.keySet()) {
-                map.put(s22, (float) ((double) Settings.I.Forge_Chance.get(s22) / 1000.0));
-            }
-            String s2;
-            do {
-                s2 = RandomUtil.probabString(map);
-            } while (s2 == null);
-            String quality = Settings.I.Attrib_Level_Text.get(s2);
-            line1 = Settings.I.Forge_Attrib.get(s2);
-            String[] raw = line1.split(" => ");
-            int min = Integer.parseInt(raw[0]);
-            int max = Integer.parseInt(raw[1]);
-            r = Main.rd.nextInt(max - min);
-            double add = (double)r + (double)(max - min) * ((double)addChance / 100.0);
-            r = add + add * ((double)PlayerData.pMap.get(p.getName()).getLevel() / 100.0) > (double)(max - min) ? max - min : (int)(add + add * ((double)PlayerData.pMap.get(p.getName()).getLevel() / 100.0));
-            float pref = (float)r / (float)(max - min);
-            int pre = (int)(pref * 25.0f);
-            StringBuilder preceText = new StringBuilder("§b[");
-            String ch = "§c|";
-            if (pre > 5) {
-                ch = "§e|";
-            }
-            if (pre > 10) {
-                ch = "§a|";
-            }
-            if (pre > 15) {
-                ch = "§3|";
-            }
-            if (pre > 20) {
-                ch = "§9|";
-            }
-            for (rd = 0; rd < 25; ++rd) {
-                if (rd <= pre) {
-                    preceText.append(ch);
-                    continue;
+            List<ItemStack> finalResult = new ArrayList<>();
+            for (int i = 0; i < finalCount; ++i) {
+                Map<String, Float> map = Settings.I.Forge_Chance;
+                String level = RandomUtil.probabString(map);
+                String quality = Settings.I.Attrib_Level_Text.get(level);
+                String attributeRange = Settings.I.Forge_Attrib.get(level); // 属性波动范围
+                String[] raw = attributeRange.split(" => ");
+                int min = Integer.parseInt(raw[0]);
+                int max = Integer.parseInt(raw[1]);
+                int r = Main.rd.nextInt(max - min);
+                double add = (double) r + (double) (max - min) * ((double) addChance / 100.0);
+                r = add + add * ((double) PlayerData.pMap.get(p.getName()).getLevel() / 100.0) > (double) (max - min) ? max - min : (int) (add + add * ((double) PlayerData.pMap.get(p.getName()).getLevel() / 100.0));
+                float pref = (float) r / (float) (max - min);
+                int pre = (int) (pref * 25.0f);
+                StringBuilder preceText = new StringBuilder("§b[");
+                String ch = "§c|";
+                if (pre > 5) {
+                    ch = "§e|";
                 }
-                preceText.append("§8|");
-            }
-            preceText.append("§b]");
-            rd = min + r;
-            ItemStack item6 = dd.getResult().clone();
-            ItemMeta meta2 = item6.getItemMeta();
-            List<String> lore = meta2.hasLore() ? meta2.getLore() : new ArrayList<>();
-            Pattern pa = Pattern.compile("\\([^(]+\\)");
-            List<String> attrib = dd.getAttrib();
-            for (String attribute : attrib) {
-                Matcher m = pa.matcher(attribute);
-                ArrayList<Integer> ori = new ArrayList<>();
-                ArrayList<Integer> now = new ArrayList<>();
-                while (m.find()) {
-                    ori.add(Integer.parseInt(m.group().replaceAll("\\(", "").replaceAll("\\)", "")));
+                if (pre > 10) {
+                    ch = "§a|";
                 }
-                for (int n : ori) {
-                    n += (int) ((double) n * (double) rd / 100.0);
-                    now.add(n);
+                if (pre > 15) {
+                    ch = "§3|";
                 }
-                String atn = attribute;
-                for (int i2 = 0; i2 < ori.size(); ++i2) {
-                    String z = "\\(" + ori.get(i2) + "\\)";
-                    atn = atn.replaceAll(z, String.valueOf(now.get(i2)));
+                if (pre > 20) {
+                    ch = "§9|";
                 }
-                lore.add(atn);
-            }
-            lore.add(quality);
-            lore.add(Settings.I.Attrib_Perce_Text + preceText);
-            at2 = Settings.I.ForgeOwner;
-            at2 = at2.replaceAll("<player>", p.getName());
-            DateFormat df = DateFormat.getDateInstance(2, Locale.CHINA);
-            DateFormat df2 = DateFormat.getTimeInstance(2, Locale.CHINA);
-            String date = df.format(new Date()) + " " + df2.format(new Date());
-            lore.add(at2);
-            lore.add(Settings.I.ForgeDate.replaceAll("<date>", date));
-            meta2.setLore(lore);
-            item6.setItemMeta(meta2);
-            Inventory rInv = Bukkit.createInventory(null, 9, "§c§l锻造结果");
-            rInv.setItem(4, item6);
-            ItemStack re = item6.clone();
-            Bukkit.getScheduler().runTaskLater(NullForge.INSTANCE, () -> {
-                p.openInventory(rInv);
-                PlayerForgeItemEvent event = new PlayerForgeItemEvent(p, re, dd);
-                Bukkit.getServer().getPluginManager().callEvent(event);
-                p.sendMessage(MessageLoader.getMessage("forge-finish")); //锻造成功
+                for (rd = 0; rd < 25; ++rd) {
+                    if (rd <= pre) {
+                        preceText.append(ch);
+                        continue;
+                    }
+                    preceText.append("§8|");
+                }
+                preceText.append("§b]");
+                rd = min + r;
+                ItemStack resultItem = dd.getResult().clone();
+                ItemMeta resultMeta = resultItem.getItemMeta();
+                List<String> lore = resultMeta.hasLore() ? resultMeta.getLore() : new ArrayList<>();
+                Pattern pa = Pattern.compile("\\([^(]+\\)");
+                List<String> attrib = dd.getAttrib();
+                for (String attribute : attrib) {
+                    Matcher m = pa.matcher(attribute);
+                    ArrayList<Integer> ori = new ArrayList<>();
+                    ArrayList<Integer> now = new ArrayList<>();
+                    while (m.find()) {
+                        ori.add(Integer.parseInt(m.group().replaceAll("\\(", "").replaceAll("\\)", "")));
+                    }
+                    for (int n : ori) {
+                        n += (int) ((double) n * (double) rd / 100.0);
+                        now.add(n);
+                    }
+                    String atn = attribute;
+                    for (int i2 = 0; i2 < ori.size(); ++i2) {
+                        String z = "\\(" + ori.get(i2) + "\\)";
+                        atn = atn.replaceAll(z, String.valueOf(now.get(i2)));
+                    }
+                    lore.add(atn);
+                }
+                lore.add(quality);
+                lore.add(Settings.I.Attrib_Perce_Text + preceText);
+                lore.add(Settings.I.ForgeOwner.replaceAll("<player>", p.getName()));
+                DateFormat df = DateFormat.getDateInstance(2, Locale.CHINA);
+                DateFormat df2 = DateFormat.getTimeInstance(2, Locale.CHINA);
+                String date = df.format(new Date()) + " " + df2.format(new Date());
+                lore.add(Settings.I.ForgeDate.replaceAll("<date>", date));
+                resultMeta.setLore(lore);
+                resultItem.setItemMeta(resultMeta);
+                finalResult.add(resultItem);
+                // 锻造完成，发送全服广播
+                p.sendMessage(MessageLoader.getMessage("forge-finish")); // 锻造成功
                 String playerName = p.getName();
-                // 假设 quality 是一个字符串，表示物品的品质
-                String itemName = item6.getItemMeta().getDisplayName(); // 获取物品名称，这里假设是通过ItemMeta获得
-                String message = MessageLoader.getMessage("forge-broadcast") //全服广播
+                String itemName = resultItem.getItemMeta().getDisplayName();
+                String message = MessageLoader.getMessage("forge-broadcast") // 全服广播
                         .replace("%player%", playerName)
                         .replace("%quality%", quality)
                         .replace("%itemname%", itemName);
-                    p.sendMessage(message);
-                }, 20L);
+                p.sendMessage(message);
+            }
+            int invSize = finalResult.size() + (9 - finalResult.size() % 9);
+            Inventory rInv = Bukkit.createInventory(null, invSize, "§c§l锻造结果");
+            for (int i = 0; i < finalResult.size(); ++i) {
+                ItemStack item = finalResult.get(i);
+                rInv.setItem(i, item);
+                PlayerForgeItemEvent event = new PlayerForgeItemEvent(p, item.clone(), dd);
+                Bukkit.getServer().getPluginManager().callEvent(event);
+            }
+            // 返还无效和多余的材料,不返还宝石
+            middleItems.remove(p.getName());
+            playerAddItem(p, itemList);
+            playerAddItem(p, total);
+            Bukkit.getScheduler().runTaskLater(NullForge.INSTANCE, () -> p.openInventory(rInv), 20L);
         }
         if (e.getInventory().getTitle().equals("§c§l锻造结果")) {
-            PlayerInventory pInv2 = p.getInventory();
+            PlayerInventory playerInventory = p.getInventory();
             for (int i = 0; i < e.getInventory().getSize(); ++i) {
                 if (e.getInventory().getItem(i) == null) continue;
-                pInv2.addItem(e.getInventory().getItem(i));
+                playerInventory.addItem(e.getInventory().getItem(i));
             }
         }
     }
 
-    public boolean getAttrib(DrawData dd) {
-        ItemStack itemStack = dd.getResult();
-        if (itemStack == null) {
-            return false;
+    // 获取最终锻造数量，并更改total中的物品数量
+    private int getFinalCount(Map<ItemStack, Integer> total, List<ItemStack> flist) {
+        List<Integer> counts = new ArrayList<>();
+        for (ItemStack item : flist) {
+            ItemStack sample = item.clone();
+            sample.setAmount(1);
+            int count = total.get(sample);
+            counts.add(count / item.getAmount());
         }
-        int id = itemStack.getTypeId();
-        boolean result = id == 267 || id == 268 || id == 272 || id == 276 || id == 283 || id == 298 || id == 302 || id == 306 || id == 310 || id == 314 || id == 299 || id == 303 || id == 307 || id == 311 || id == 315 || id == 300 || id == 304 || id == 308 || id == 312 || id == 316 || id == 301 || id == 305 || id == 309 || id == 313 || id == 317 || id == 442;
-        return true;
+        int finalCount = Collections.min(counts);
+        for (ItemStack item : flist) {
+            ItemStack sample = item.clone();
+            sample.setAmount(1);
+            total.compute(sample, (k, v) -> v == null ? 0 : v - finalCount * item.getAmount());
+        }
+        return finalCount;
     }
 
     public int getGemLevel(ItemStack gem, ItemStack item) {
@@ -484,6 +498,67 @@ public class OnPlayerClickInv implements Listener {
             level = levelLore.split(Settings.I.Gem_Level_Color)[1].length();
         }
         return level;
+    }
+
+    private void playerAddItem(Player player, List<ItemStack> itemList, Map<ItemStack, Integer> itemMap) {
+        playerAddItem(player);
+        if (!(itemList == null)) {
+            playerAddItem(player, itemList);
+        }
+        if (!(itemMap == null)) {
+            playerAddItem(player, itemMap);
+        }
+    }
+
+    private void playerAddItem(Player player) {
+        String playerName = player.getName();
+        if (middleItems.containsKey(playerName)) {
+            playerAddItem(player, middleItems.get(playerName));
+            middleItems.remove(playerName);
+        }
+    }
+
+    private void playerAddItem(Player player, List<ItemStack> itemStacks) {
+        PlayerInventory playerInventory = player.getInventory();
+        for (ItemStack itemStack : itemStacks) {
+            playerInventory.addItem(itemStack);
+        }
+        itemStacks.clear();
+    }
+
+    private void playerAddItem(Player player, Map<ItemStack, Integer> itemStacks) {
+        PlayerInventory playerInventory = player.getInventory();
+        for (Map.Entry<ItemStack, Integer> entry : itemStacks.entrySet()) {
+            if (entry.getValue() == 0) continue;
+            ItemStack itemStack = entry.getKey();
+            itemStack.setAmount(entry.getValue());
+            playerInventory.addItem(itemStack);
+        }
+        itemStacks.clear();
+    }
+
+
+
+    private void addMiddleItem(Player player, ItemStack itemStack) {
+        String playerName = player.getName();
+        ItemStack key = itemStack.clone();
+        key.setAmount(1);
+        if (middleItems.containsKey(playerName)) {
+            middleItems.get(playerName).compute(key, (k, v) -> v == null ? 0 : v + itemStack.getAmount());
+        } else {
+            Map<ItemStack, Integer> items = new HashMap<>();
+            items.put(key, itemStack.getAmount());
+            middleItems.put(playerName, items);
+        }
+    }
+
+    private void delMiddleItem(Player player, ItemStack itemStack) {
+        String playerName = player.getName();
+        if (middleItems.containsKey(playerName)) {
+            ItemStack key = itemStack.clone();
+            key.setAmount(1);
+            middleItems.get(playerName).compute(key, (k, v) -> v == null ? 0 : v - itemStack.getAmount());
+        }
     }
 }
 
