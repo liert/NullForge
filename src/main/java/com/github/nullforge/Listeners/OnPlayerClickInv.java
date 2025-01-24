@@ -28,7 +28,6 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.jetbrains.annotations.NotNull;
 
 public class OnPlayerClickInv implements Listener {
     public static Map<String, Map<ItemStack, Integer>> middleItems = new HashMap<>();
@@ -108,10 +107,6 @@ public class OnPlayerClickInv implements Listener {
             }
             ItemStack draw = inv.getItem(10).clone();
             ItemStack gemstone = inv.getItem(13).clone();
-            if (gemstone.getAmount() != 1) {
-                p.sendMessage(MessageLoader.getMessage("gui-gem-1")); //宝石必须为1
-                return;
-            }
             DrawData drawData = DrawManager.getDraw(draw);
             if (drawData == null) {
                 p.sendMessage(MessageLoader.getMessage("gui-invalid-draw")); //图纸不合法
@@ -222,7 +217,6 @@ public class OnPlayerClickInv implements Listener {
     public void close(InventoryCloseEvent e) {
         Player p = (Player) e.getPlayer();
         if (e.getInventory().getTitle().equals("§c锻造系统")) {
-            // TODO: 还未修复，锻造失败不返还宝石的Bug
             if (unClickList.contains(p.getName())) {
                 Inventory inv2 = e.getInventory();
                 if (inv2.getItem(13) != null) {
@@ -268,19 +262,18 @@ public class OnPlayerClickInv implements Listener {
             Inventory inv = e.getInventory();
             DrawData dd = drawPlayerMap.get(p.getName());
             List<ItemStack> formulaList = dd.getFormula();
-            List<ItemStack> itemList = new ArrayList<>();
             int addChance = 0;
             // 获取玩家放入的材料
             for (int j = 0; j < inv.getSize(); ++j) {
                 if (inv.getItem(j) == null) continue;
                 ItemStack tempItem = inv.getItem(j).clone();
                 if (!tempItem.hasItemMeta()) {
-                    itemList.add(tempItem);
+                    addMiddleItem(p, tempItem);
                     continue;
                 }
                 ItemMeta tempMeta = tempItem.getItemMeta();
                 if (!tempMeta.hasLore()) {
-                    itemList.add(tempItem);
+                    addMiddleItem(p, tempItem);
                     continue;
                 }
                 List<String> tempLore = tempMeta.getLore();
@@ -289,42 +282,26 @@ public class OnPlayerClickInv implements Listener {
                     addChance += Integer.parseInt(tempLore.get(0).replace(luckLore[0], "")) * tempItem.getAmount();
                     continue;
                 }
-                itemList.add(tempItem);
+                addMiddleItem(p, tempItem);
             }
+            // 获取玩家放入的所有材料
+            Map<ItemStack, Integer> total = middleItems.get(p.getName());
+
             // 没有放入锻造材料，返回宝石
-            if (itemList.isEmpty()) {
+            if (total.size() <= 1) {
                 playerAddItem(p);
                 p.sendMessage(MessageLoader.getMessage("forge-null"));
                 return;
             }
-            // 统计有效材料的数量，
-            Map<ItemStack, Integer> total = new HashMap<>();
-            for (ItemStack fItem: formulaList) {
-                Iterator<ItemStack> iterator = itemList.iterator();
-                while (iterator.hasNext()) {
-                    ItemStack item = iterator.next();
-                    if (!item.isSimilar(fItem)) continue;
-                    ItemStack sample = item.clone();
-                    sample.setAmount(1);
-                    if (total.containsKey(sample)) {
-                        total.compute(sample, (k, v) -> v + item.getAmount());
-                    } else {
-                        total.put(sample, item.getAmount());
-                    }
-                    iterator.remove();
-                }
-            }
-            // 放入的不是锻造材料，返回物品和宝石
-            if (total.isEmpty()) {
-                p.sendMessage(MessageLoader.getMessage("forge-null"));
-                playerAddItem(p, itemList, null);
-                return;
-            }
+
             // 放入的材料不足以锻造一个物品，返回材料和宝石
+            formulaList.add(dd.getGem());
             int finalCount = getFinalCount(total, formulaList);
+            p.sendMessage("Total: " + total);
+            p.sendMessage("formulaList: " + formulaList);
             if (finalCount <= 0) {
                 p.sendMessage(MessageLoader.getMessage("forge-null"));
-                playerAddItem(p, itemList, total);
+                playerAddItem(p);
                 return;
             }
             p.sendMessage(MessageLoader.getMessage("forge-ing")); //锻造中...
@@ -424,10 +401,8 @@ public class OnPlayerClickInv implements Listener {
                 PlayerForgeItemEvent event = new PlayerForgeItemEvent(p, item.clone(), dd);
                 Bukkit.getServer().getPluginManager().callEvent(event);
             }
-            // 返还无效和多余的材料,不返还宝石
-            middleItems.remove(p.getName());
-            playerAddItem(p, itemList);
-            playerAddItem(p, total);
+            // 返还无效和多余的材料
+            playerAddItem(p);
             Bukkit.getScheduler().runTaskLater(NullForge.INSTANCE, () -> p.openInventory(rInv), 20L);
         }
         if (e.getInventory().getTitle().equals("§c§l锻造结果")) {
@@ -448,6 +423,7 @@ public class OnPlayerClickInv implements Listener {
             int count = total.get(sample);
             counts.add(count / item.getAmount());
         }
+
         int finalCount = Collections.min(counts);
         for (ItemStack item : flist) {
             ItemStack sample = item.clone();
@@ -500,16 +476,7 @@ public class OnPlayerClickInv implements Listener {
         return level;
     }
 
-    private void playerAddItem(Player player, List<ItemStack> itemList, Map<ItemStack, Integer> itemMap) {
-        playerAddItem(player);
-        if (!(itemList == null)) {
-            playerAddItem(player, itemList);
-        }
-        if (!(itemMap == null)) {
-            playerAddItem(player, itemMap);
-        }
-    }
-
+    // 向玩家背包中添加物品
     private void playerAddItem(Player player) {
         String playerName = player.getName();
         if (middleItems.containsKey(playerName)) {
@@ -537,14 +504,12 @@ public class OnPlayerClickInv implements Listener {
         itemStacks.clear();
     }
 
-
-
     private void addMiddleItem(Player player, ItemStack itemStack) {
         String playerName = player.getName();
         ItemStack key = itemStack.clone();
         key.setAmount(1);
         if (middleItems.containsKey(playerName)) {
-            middleItems.get(playerName).compute(key, (k, v) -> v == null ? 0 : v + itemStack.getAmount());
+            middleItems.get(playerName).compute(key, (k, v) -> v == null ? itemStack.getAmount() : v + itemStack.getAmount());
         } else {
             Map<ItemStack, Integer> items = new HashMap<>();
             items.put(key, itemStack.getAmount());
