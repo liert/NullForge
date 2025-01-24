@@ -297,8 +297,6 @@ public class OnPlayerClickInv implements Listener {
             // 放入的材料不足以锻造一个物品，返回材料和宝石
             formulaList.add(dd.getGem());
             int finalCount = getFinalCount(total, formulaList);
-            p.sendMessage("Total: " + total);
-            p.sendMessage("formulaList: " + formulaList);
             if (finalCount <= 0) {
                 p.sendMessage(MessageLoader.getMessage("forge-null"));
                 playerAddItem(p);
