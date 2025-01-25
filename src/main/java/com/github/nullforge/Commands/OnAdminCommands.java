@@ -88,7 +88,7 @@ public class OnAdminCommands implements CommandExecutor {
         sender.sendMessage("§7 - §floaddraw §7§o#§A§o重新载入图纸信息");
         sender.sendMessage("§7 - §freload §7§o#§A§o重新载入配置");
         sender.sendMessage("§7 - §fget §7§o#§A§o获取指定品质的锻造装备§f> §o(无需材料)(最大浮动)");
-        sender.sendMessage("§7 - §frandom §7§o#§A§o获取随机品质的锻造装备§f> §o(无需淬炼)(随机浮动)");
+        sender.sendMessage("§7 - §frandom §7§o#§A§o获取随机品质的锻造装备§f> §o(无需材料)(随机浮动)");
     }
 
     private void handleList(CommandSender sender) {
