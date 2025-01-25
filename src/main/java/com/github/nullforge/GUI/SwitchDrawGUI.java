@@ -4,6 +4,7 @@ import com.github.nullforge.Data.DrawData;
 import com.github.nullforge.Data.DrawManager;
 import com.github.nullforge.Data.PlayerData;
 import com.github.nullforge.Listeners.OnPlayerClickInv;
+import com.github.nullforge.MessageLoader;
 import com.github.nullforge.Utils.ItemMaker;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -39,7 +40,8 @@ public class SwitchDrawGUI {
                 if (item != null) {
                     ItemMeta meta = item.getItemMeta();
                     List<String> lore = meta.getLore();
-                    lore.add("§c§l点击此图纸开始锻造...");
+                    lore.add(MessageLoader.getMessage("gui-draw-preview-left-click"));
+                    lore.add(MessageLoader.getMessage("gui-draw-preview-right-click"));
                     meta.setLore(lore);
                     item.setItemMeta(meta);
                     inv.setItem(count, item);

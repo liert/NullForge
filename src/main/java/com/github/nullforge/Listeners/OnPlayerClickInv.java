@@ -48,10 +48,11 @@ public class OnPlayerClickInv implements Listener {
             e.setCancelled(true);
 
             if (slot > 35) {
+                // 处理分页逻辑
                 int index = indexMap.get(p.getName());
                 if (slot == 36) {
                     if (index <= 0) {
-                        p.sendMessage(MessageLoader.getMessage("gui-first-page")); //已经是第一页
+                        p.sendMessage(MessageLoader.getMessage("gui-first-page")); // 已经是第一页
                     } else {
                         p.openInventory(SwitchDrawGUI.getGUI(p, index - 1));
                     }
@@ -60,13 +61,14 @@ public class OnPlayerClickInv implements Listener {
                 if (slot == 44) {
                     PlayerData pd = PlayerData.pMap.get(p.getName());
                     if ((index + 1) * 36 > pd.getLearn().size()) {
-                        p.sendMessage(MessageLoader.getMessage("gui-last-page")); //已经是最后一页
+                        p.sendMessage(MessageLoader.getMessage("gui-last-page")); // 已经是最后一页
                     } else {
                         p.openInventory(SwitchDrawGUI.getGUI(p, index + 1));
                     }
                 }
                 return;
             }
+
             if (!SwitchDrawGUI.switchMap.containsKey(p.getName())) {
                 return;
             }
@@ -75,13 +77,36 @@ public class OnPlayerClickInv implements Listener {
                 return;
             }
             DrawData dd = list.get(slot);
-            nextList.remove(p.getName());
-            unClickList.add(p.getName());
-            if (dd.getDrawItem() == null) {
-                p.sendMessage(MessageLoader.getMessage("gui-not-draw")); //不存在图纸
-                return;
+
+            // 判断左键或右键点击
+            if (e.isLeftClick()) {
+                // 左键点击：执行锻造操作
+                nextList.remove(p.getName());
+                unClickList.add(p.getName());
+                if (dd.getDrawItem() == null) {
+                    p.sendMessage(MessageLoader.getMessage("gui-not-draw")); // 不存在图纸
+                    return;
+                }
+                p.openInventory(ForgeGUI.getGUI(dd.getDrawItem()));
+            } else if (e.isRightClick()) {
+                // 右键点击：预览图纸所需材料
+                Inventory previewInv = Bukkit.createInventory(null, 54, "§c§l图纸材料预览：" + dd.getDisplayName());
+                List<ItemStack> materials = dd.getFormula();
+                for (int i = 0; i < materials.size(); i++) {
+                    previewInv.setItem(i, materials.get(i));
+                }
+                p.openInventory(previewInv);
             }
-            p.openInventory(ForgeGUI.getGUI(dd.getDrawItem()));
+        }
+
+        String title = e.getInventory().getTitle();
+        if (title != null && title.matches("§c§l图纸材料预览：.*")) {
+            e.setCancelled(true); // 取消点击事件
+            if (e.isShiftClick()) {
+            }
+            if (e.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
+            }
+            return;
         }
         if (e.getInventory().getTitle().equals("§c锻造系统")) {
             int slot = e.getRawSlot();

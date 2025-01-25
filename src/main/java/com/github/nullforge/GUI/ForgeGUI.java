@@ -1,5 +1,6 @@
 package com.github.nullforge.GUI;
 
+import com.github.nullforge.MessageLoader;
 import com.github.nullforge.Utils.ItemMaker;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -9,9 +10,10 @@ import org.bukkit.inventory.ItemStack;
 public class ForgeGUI {
     public static Inventory getGUI(ItemStack draw) {
         Inventory inv = Bukkit.createInventory(null, 27, "§c锻造系统");
-        ItemStack red = ItemMaker.create(Material.STAINED_GLASS_PANE, (short)14, "§c§l请放入锻造图纸", "");
-        ItemStack yellow = ItemMaker.create(Material.STAINED_GLASS_PANE, (short)4, "§e§l请放入锻造宝石", "");
-        ItemStack green = ItemMaker.create(Material.STAINED_GLASS_PANE, (short)5, "§a§l点击开中间图标始锻造...", "");
+        // 使用 MessageLoader 获取动态消息
+        ItemStack red = ItemMaker.create(Material.STAINED_GLASS_PANE, (short)14, MessageLoader.getMessage("gui-forge-draw"), "");
+        ItemStack yellow = ItemMaker.create(Material.STAINED_GLASS_PANE, (short)4, MessageLoader.getMessage("gui-forge-gem"), "");
+        ItemStack green = ItemMaker.create(Material.STAINED_GLASS_PANE, (short)5, MessageLoader.getMessage("gui-forge-click"), "");
         ItemStack anvil = ItemMaker.create(145, 0, "", "");
         for (int i = 0; i < 27; i++) {
             if (i == 0 || i == 1 || i == 2 || i == 9 || i == 11 || i == 18 || i == 19 || i == 20) {
