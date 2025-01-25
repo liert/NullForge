@@ -249,7 +249,7 @@ public class OnAdminCommands implements CommandExecutor {
         ItemStack resultItem = forgeItemWithQuality(targetPlayer, drawData, randomQuality, false); // 设置 isCommand 为 false
         if (resultItem != null) {
             targetPlayer.getInventory().addItem(resultItem);
-            sender.sendMessage("§c[系统]§a随机品质的装备 " + fileName + " (" + randomQuality + ") 已经给予到 " + targetPlayer.getName() + " 的背包中!");
+            sender.sendMessage("§c[系统]§a锻造装备 " + fileName + " (" + randomQuality + ") 已经给予到 " + targetPlayer.getName() + " 的背包中!");
         } else {
             sender.sendMessage("§c[系统]§a锻造失败!");
         }
@@ -282,7 +282,7 @@ public class OnAdminCommands implements CommandExecutor {
                 ItemStack resultItem = forgeItemWithQuality(targetPlayer, drawData, quality, true); // 设置 isCommand 为 true
                 if (resultItem != null) {
                     targetPlayer.getInventory().addItem(resultItem);
-                    sender.sendMessage("§c[系统]§a装备 " + fileName + " 已经给予到 " + targetPlayer.getName() + " 的背包中!");
+                    sender.sendMessage("§c[系统]§a锻造装备 " + fileName + " 已经给予到 " + targetPlayer.getName() + " 的背包中!");
                     found = true;
                     break;
                 }
