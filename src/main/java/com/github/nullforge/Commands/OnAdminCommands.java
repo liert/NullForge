@@ -34,7 +34,7 @@ public class OnAdminCommands implements CommandExecutor {
                 return true;
             }
 
-            if (args.length == 0 || (!args[0].equals("list") && !args[0].equals("give") && !args[0].equals("gem") && !args[0].equals("level") && !args[0].equals("loaddraw") && !args[0].equals("reload") && !args[0].equals("testexp") && !args[0].equals("get"))) {
+            if (args.length == 0 || (!args[0].equals("list") && !args[0].equals("give") && !args[0].equals("gem") && !args[0].equals("level") && !args[0].equals("loaddraw") && !args[0].equals("reload") && !args[0].equals("testexp") && !args[0].equals("get") && !args[0].equals("random"))){
                 sendUsage(sender);
                 return true;
             }
@@ -64,6 +64,9 @@ public class OnAdminCommands implements CommandExecutor {
                 case "get":
                     handleForgeGetQuality(sender, args);
                     break;
+                case "random":
+                    handleRandomForge(sender, args);
+                    break;
                 default:
                     sendUsage(sender);
                     break;
@@ -84,7 +87,8 @@ public class OnAdminCommands implements CommandExecutor {
         sender.sendMessage("§7 - §ftestexp §7§o#§A§o获取每级所需多少经验");
         sender.sendMessage("§7 - §floaddraw §7§o#§A§o重新载入图纸信息");
         sender.sendMessage("§7 - §freload §7§o#§A§o重新载入配置");
-        sender.sendMessage("§7 - §fget §7§o#§A§o获取指定品质的锻造装备§f> (无需过程)");
+        sender.sendMessage("§7 - §fget §7§o#§A§o获取指定品质的锻造装备§f> §o(无需材料)(最大浮动)");
+        sender.sendMessage("§7 - §frandom §7§o#§A§o获取随机品质的锻造装备§f> §o(无需淬炼)(随机浮动)");
     }
 
     private void handleList(CommandSender sender) {
@@ -210,6 +214,46 @@ public class OnAdminCommands implements CommandExecutor {
         Main.dataManger.getDrawData();
         sender.sendMessage("§c[系统]§a载入配置文件成功!");
     }
+    private void handleRandomForge(CommandSender sender, String[] args) {
+        if (args.length < 2) {
+            sender.sendMessage("§7完整参数:");
+            sender.sendMessage("§7 - §ffadmin random <§c§o图纸文件名§f> <§c§o玩家名§f> (可选)");
+            return;
+        }
+
+        String fileName = args[1]; // 获取图纸文件名
+        Player targetPlayer = null;
+
+        if (args.length >= 3) {
+            targetPlayer = Bukkit.getPlayer(args[2]);
+        } else if (sender instanceof Player) {
+            targetPlayer = (Player) sender;
+        }
+
+        if (targetPlayer == null) {
+            sender.sendMessage("§c[系统]§a指定的玩家不在线或未提供玩家名!");
+            return;
+        }
+
+        DrawData drawData = DrawManager.getDrawDataOfFileName(fileName);
+        if (drawData == null) {
+            sender.sendMessage("§c[系统]§a不存在这个图纸!");
+            return;
+        }
+
+        // 随机生成品质
+        Map<String, Float> forgeChance = Settings.I.Forge_Chance;
+        String randomQuality = RandomUtil.probabString(forgeChance);
+
+        // 锻造装备
+        ItemStack resultItem = forgeItemWithQuality(targetPlayer, drawData, randomQuality, false); // 设置 isCommand 为 false
+        if (resultItem != null) {
+            targetPlayer.getInventory().addItem(resultItem);
+            sender.sendMessage("§c[系统]§a随机品质的装备 " + fileName + " (" + randomQuality + ") 已经给予到 " + targetPlayer.getName() + " 的背包中!");
+        } else {
+            sender.sendMessage("§c[系统]§a锻造失败!");
+        }
+    }
     private void handleForgeGetQuality(CommandSender sender, String[] args) {
         if (args.length < 3) {
             sender.sendMessage("§7完整参数:");
@@ -235,7 +279,7 @@ public class OnAdminCommands implements CommandExecutor {
         boolean found = false;
         for (DrawData drawData : DrawManager.getDrawData()) {
             if (drawData.getFileName().equalsIgnoreCase(fileName)) { // 比较文件名
-                ItemStack resultItem = forgeItemWithQuality(targetPlayer, drawData, quality);
+                ItemStack resultItem = forgeItemWithQuality(targetPlayer, drawData, quality, true); // 设置 isCommand 为 true
                 if (resultItem != null) {
                     targetPlayer.getInventory().addItem(resultItem);
                     sender.sendMessage("§c[系统]§a装备 " + fileName + " 已经给予到 " + targetPlayer.getName() + " 的背包中!");
@@ -250,7 +294,7 @@ public class OnAdminCommands implements CommandExecutor {
         }
     }
     private String generateStrengthBar(int attributeValue, int min, int max) {
-        float progress = (float) attributeValue / (float) (max - min);
+        float progress = (float) (attributeValue - min) / (float) (max - min);
         int progressBarValue = (int) (progress * 25);
 
         StringBuilder progressBar = new StringBuilder("§b[");
@@ -275,8 +319,8 @@ public class OnAdminCommands implements CommandExecutor {
         return progressBar.toString();
     }
     // 锻造逻辑方法
-    private ItemStack forgeItemWithQuality(Player player, DrawData drawData, String quality) {
-        // 获取配置中的锻造品质概率
+    private ItemStack forgeItemWithQuality(Player player, DrawData drawData, String quality, boolean isCommand) {
+        // 获取配置中的锻造品质概率、品质描述文本和品质对应的属性范围
         Map<String, Float> forgeChance = Settings.I.Forge_Chance;
         Map<String, String> attribLevelText = Settings.I.Attrib_Level_Text;
         Map<String, String> forgeAttrib = Settings.I.Forge_Attrib;
@@ -286,26 +330,35 @@ public class OnAdminCommands implements CommandExecutor {
             return null; // 如果指定的品质无效，返回 null
         }
 
-        String qualityText = attribLevelText.get(quality);
-        String attributeRange = forgeAttrib.get(quality);
+        // 获取品质描述和属性范围
+        String qualityText = attribLevelText.get(quality); // 品质描述文本
+        String attributeRange = forgeAttrib.get(quality); // 品质对应的属性范围
 
-        // 解析属性波动范围
-        String[] rangeParts = attributeRange.split(" => ");
-        int min = Integer.parseInt(rangeParts[0]);
-        int max = Integer.parseInt(rangeParts[1]);
-        Random random = new Random();
-        int attributeValue = random.nextInt(max - min + 1) + min;
+        // 解析属性范围并生成强度值
+        String[] rangeParts = attributeRange.split(" => "); // 分割范围，例如 "50 => 70"
+        int min = Integer.parseInt(rangeParts[0]); // 最小值
+        int max = Integer.parseInt(rangeParts[1]); // 最大值
+
+        int attributeValue;
+        if (isCommand) {
+            attributeValue = max; // 如果是通过指令获取的装备，强度值设置为最大值
+        } else {
+            Random random = new Random();
+            attributeValue = random.nextInt(max - min + 1) + min; // 在最小值和最大值之间随机生成一个值
+        }
 
         // 生成强度条
         String strengthBar = generateStrengthBar(attributeValue, min, max);
 
-        // 获取最终装备
-        ItemStack resultItem = drawData.getResult().clone();
-        ItemMeta resultMeta = resultItem.getItemMeta();
-        List<String> lore = resultMeta.hasLore() ? resultMeta.getLore() : new ArrayList<>();
+        // 获取最终装备并调整属性
+        ItemStack resultItem = drawData.getResult().clone(); // 克隆图纸的结果物品
+        ItemMeta resultMeta = resultItem.getItemMeta(); // 获取物品的元数据
 
-        // 添加属性描述并调整属性数值
-        List<String> adjustedAttrib = new ArrayList<>();
+        // 保留原始物品的 lore
+        List<String> originalLore = resultMeta.hasLore() ? resultMeta.getLore() : new ArrayList<>();
+        List<String> adjustedAttrib = new ArrayList<>(originalLore); // 复制原始 lore 到新的列表
+
+        // 调整装备属性
         for (String attribute : drawData.getAttrib()) {
             // 假设属性格式为 "属性名称: (基础值)" 或 "属性名称: (最小值)-(最大值)"
             Pattern pattern = Pattern.compile("\\((\\d+)-(\\d+)\\)|\\((\\d+)\\)");
@@ -329,24 +382,22 @@ public class OnAdminCommands implements CommandExecutor {
                     attribute = attribute.replaceAll("\\(" + baseValue + "\\)", String.valueOf(adjustedValue));
                 }
             }
-            adjustedAttrib.add(attribute);
+            adjustedAttrib.add(attribute); // 添加调整后的属性到 lore
         }
 
-        // 添加品质信息
-        adjustedAttrib.add(qualityText);
-
-        // 添加锻造者信息
-        adjustedAttrib.add(Settings.I.Attrib_Perce_Text + strengthBar);
-        adjustedAttrib.add(Settings.I.ForgeOwner.replace("<player>", player.getName()));
+        // 添加品质信息和锻造者信息
+        adjustedAttrib.add(qualityText); // 添加品质描述
+        adjustedAttrib.add(Settings.I.Attrib_Perce_Text + strengthBar); // 添加强度条
+        adjustedAttrib.add(Settings.I.ForgeOwner.replace("<player>", player.getName())); // 添加锻造者信息
         java.text.DateFormat df = java.text.DateFormat.getDateInstance(2, java.util.Locale.CHINA);
         java.text.DateFormat df2 = java.text.DateFormat.getTimeInstance(2, java.util.Locale.CHINA);
         String date = df.format(new Date()) + " " + df2.format(new Date());
-        adjustedAttrib.add(Settings.I.ForgeDate.replace("<date>", date));
+        adjustedAttrib.add(Settings.I.ForgeDate.replace("<date>", date)); // 添加锻造日期
 
-        resultMeta.setLore(adjustedAttrib);
-        resultItem.setItemMeta(resultMeta);
-
-        return resultItem;
+        // 更新物品描述并返回
+        resultMeta.setLore(adjustedAttrib); // 更新物品的描述
+        resultItem.setItemMeta(resultMeta); // 应用元数据
+        return resultItem; // 返回最终的装备
     }
     public boolean isNum(String str) {
         Pattern pattern = Pattern.compile("[0-9]*");
