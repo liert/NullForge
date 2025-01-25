@@ -18,6 +18,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -416,6 +417,12 @@ public class OnPlayerClickInv implements Listener {
                         .replace("%quality%", quality)
                         .replace("%itemname%", itemName);
                 p.sendMessage(message);
+                // 执行自定义命令
+                List<String> customCommands = dd.getCustomCommands();
+                for (String command : customCommands) {
+                    command = command.replace("%player%", p.getName()); // 替换占位符
+                    Bukkit.dispatchCommand((CommandSender) Bukkit.getConsoleSender(), command); // 执行命令
+                }
             }
             int invSize = finalResult.size() + (9 - finalResult.size() % 9);
             Inventory rInv = Bukkit.createInventory(null, invSize, "§c§l锻造结果");

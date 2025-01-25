@@ -3,15 +3,16 @@ package com.github.nullforge.Data;
 import com.github.nullforge.Config.Settings;
 import com.github.nullforge.Utils.ItemMaker;
 import com.github.nullforge.Utils.ItemString;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 public class DrawData {
     private final File file;
@@ -23,6 +24,7 @@ public class DrawData {
     private int needPlayerLevel;
     private List<String> detail;
     private List<String> attrib;
+    private List<String> customCommands; // 新增字段
 
     public static void CreateDrawData(File file) {
         new DrawData(file);
@@ -95,6 +97,7 @@ public class DrawData {
         this.needPlayerLevel = drawConfig.getInt("playerlevel");
         this.detail = drawConfig.getStringList("detail");
         this.attrib = drawConfig.getStringList("attrib");
+        this.customCommands = drawConfig.getStringList("customCommands"); // 读取自定义命令
         DrawManager.addDraw(this);
     }
 
@@ -114,6 +117,10 @@ public class DrawData {
         return this.attrib;
     }
 
+    public List<String> getCustomCommands() { // 新增方法
+        return this.customCommands;
+    }
+
     public void setNeedGemLevel(int needGemLevel) {
         this.needGemLevel = needGemLevel;
     }
@@ -130,6 +137,11 @@ public class DrawData {
         this.attrib = attrib;
     }
 
+    public void setCustomCommands(List<String> customCommands) { // 新增方法
+        this.customCommands = customCommands;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (o == this) {
             return true;
@@ -137,7 +149,7 @@ public class DrawData {
         if (!(o instanceof DrawData)) {
             return false;
         }
-        DrawData other = (DrawData)o;
+        DrawData other = (DrawData) o;
         if (!other.canEqual(this)) {
             return false;
         }
@@ -165,35 +177,41 @@ public class DrawData {
         }
         List<String> this_attrib = this.getAttrib();
         List<String> other_attrib = other.getAttrib();
-        return Objects.equals(this_attrib, other_attrib);
+        if (!Objects.equals(this_attrib, other_attrib)) {
+            return false;
+        }
+        List<String> this_customCommands = this.getCustomCommands(); // 比较自定义命令
+        List<String> other_customCommands = other.getCustomCommands();
+        return Objects.equals(this_customCommands, other_customCommands);
     }
 
     protected boolean canEqual(Object other) {
         return other instanceof DrawData;
     }
 
+    @Override
     public int hashCode() {
         int PRIME = 59;
         int result = 1;
         ItemStack $gem = this.getGem();
         result = result * PRIME + ($gem == null ? 43 : $gem.hashCode());
         List<ItemStack> $formula = this.getFormula();
-        result = result * PRIME + ($formula == null ? 43 : ((Object)$formula).hashCode());
+        result = result * PRIME + ($formula == null ? 43 : ((Object) $formula).hashCode());
         ItemStack $result = this.getResult();
         result = result * PRIME + ($result == null ? 43 : $result.hashCode());
         result = result * PRIME + this.getNeedGemLevel();
         result = result * PRIME + this.getNeedPlayerLevel();
         List<String> $detail = this.getDetail();
-        result = result * PRIME + ($detail == null ? 43 : ((Object)$detail).hashCode());
+        result = result * PRIME + ($detail == null ? 43 : ((Object) $detail).hashCode());
         List<String> $attrib = this.getAttrib();
-        result = result * PRIME + ($attrib == null ? 43 : ((Object)$attrib).hashCode());
+        result = result * PRIME + ($attrib == null ? 43 : ((Object) $attrib).hashCode());
+        List<String> $customCommands = this.getCustomCommands(); // 添加自定义命令的哈希码
+        result = result * PRIME + ($customCommands == null ? 43 : ((Object) $customCommands).hashCode());
         return result;
     }
 
+    @Override
     public String toString() {
-        return "DrawData(gem=" + this.getGem() + ", formula=" + this.getFormula() + ", result=" + this.getResult() + ", needGemLevel=" + this.getNeedGemLevel() + ", needPlayerLevel=" + this.getNeedPlayerLevel() + ", detail=" + this.getDetail() + ", attrib=" + this.getAttrib() + ")";
+        return "DrawData(gem=" + this.getGem() + ", formula=" + this.getFormula() + ", result=" + this.getResult() + ", needGemLevel=" + this.getNeedGemLevel() + ", needPlayerLevel=" + this.getNeedPlayerLevel() + ", detail=" + this.getDetail() + ", attrib=" + this.getAttrib() + ", customCommands=" + this.getCustomCommands() + ")";
     }
-
-
 }
-
