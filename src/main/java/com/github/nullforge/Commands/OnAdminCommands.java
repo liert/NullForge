@@ -62,7 +62,7 @@ public class OnAdminCommands implements CommandExecutor {
                     handleReload(sender);
                     break;
                 case "get":
-                    handleForgeGet(sender, args);
+                    handleForgeGetQuality(sender, args);
                     break;
                 default:
                     sendUsage(sender);
@@ -84,7 +84,7 @@ public class OnAdminCommands implements CommandExecutor {
         sender.sendMessage("§7 - §ftestexp §7§o#§A§o获取每级所需多少经验");
         sender.sendMessage("§7 - §floaddraw §7§o#§A§o重新载入图纸信息");
         sender.sendMessage("§7 - §freload §7§o#§A§o重新载入配置");
-        sender.sendMessage("§7 - §fget §7§o#§A§o直接获取锻造后的装备");
+        sender.sendMessage("§7 - §fget §7§o#§A§o获取指定品质的锻造装备§f> (无需过程)");
     }
 
     private void handleList(CommandSender sender) {
@@ -210,18 +210,19 @@ public class OnAdminCommands implements CommandExecutor {
         Main.dataManger.getDrawData();
         sender.sendMessage("§c[系统]§a载入配置文件成功!");
     }
-    private void handleForgeGet(CommandSender sender, String[] args) {
-        if (args.length < 2) {
+    private void handleForgeGetQuality(CommandSender sender, String[] args) {
+        if (args.length < 3) {
             sender.sendMessage("§7完整参数:");
-            sender.sendMessage("§7 - §fget <§c§o文件名§f> <§c§o玩家名§f> (可选)");
+            sender.sendMessage("§7 - §fget <§c§olevel-1§f> <§c§o图纸文件名§f> <§c§o玩家名§f> (可选)");
             return;
         }
 
-        String fileName = args[1]; // 获取文件名
+        String quality = args[1]; // 获取指定品质
+        String fileName = args[2]; // 获取文件名
         Player targetPlayer = null;
 
-        if (args.length >= 3) {
-            targetPlayer = Bukkit.getPlayer(args[2]);
+        if (args.length >= 4) {
+            targetPlayer = Bukkit.getPlayer(args[3]);
         } else if (sender instanceof Player) {
             targetPlayer = (Player) sender;
         }
@@ -234,7 +235,7 @@ public class OnAdminCommands implements CommandExecutor {
         boolean found = false;
         for (DrawData drawData : DrawManager.getDrawData()) {
             if (drawData.getFileName().equalsIgnoreCase(fileName)) { // 比较文件名
-                ItemStack resultItem = forgeItem(targetPlayer, drawData);
+                ItemStack resultItem = forgeItemWithQuality(targetPlayer, drawData, quality);
                 if (resultItem != null) {
                     targetPlayer.getInventory().addItem(resultItem);
                     sender.sendMessage("§c[系统]§a装备 " + fileName + " 已经给予到 " + targetPlayer.getName() + " 的背包中!");
@@ -274,16 +275,19 @@ public class OnAdminCommands implements CommandExecutor {
         return progressBar.toString();
     }
     // 锻造逻辑方法
-    private ItemStack forgeItem(Player player, DrawData drawData) {
+    private ItemStack forgeItemWithQuality(Player player, DrawData drawData, String quality) {
         // 获取配置中的锻造品质概率
         Map<String, Float> forgeChance = Settings.I.Forge_Chance;
         Map<String, String> attribLevelText = Settings.I.Attrib_Level_Text;
         Map<String, String> forgeAttrib = Settings.I.Forge_Attrib;
 
-        // 随机选择一个锻造品质
-        String qualityLevel = RandomUtil.probabString(forgeChance);
-        String qualityText = attribLevelText.get(qualityLevel);
-        String attributeRange = forgeAttrib.get(qualityLevel);
+        // 检查指定的品质是否有效
+        if (!forgeChance.containsKey(quality)) {
+            return null; // 如果指定的品质无效，返回 null
+        }
+
+        String qualityText = attribLevelText.get(quality);
+        String attributeRange = forgeAttrib.get(quality);
 
         // 解析属性波动范围
         String[] rangeParts = attributeRange.split(" => ");
@@ -344,7 +348,6 @@ public class OnAdminCommands implements CommandExecutor {
 
         return resultItem;
     }
-
     public boolean isNum(String str) {
         Pattern pattern = Pattern.compile("[0-9]*");
         Matcher isNum = pattern.matcher(str);
