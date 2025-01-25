@@ -46,6 +46,7 @@ public class OnPlayerClickInv implements Listener {
                 return;
             }
             e.setCancelled(true);
+
             if (slot > 35) {
                 int index = indexMap.get(p.getName());
                 if (slot == 36) {

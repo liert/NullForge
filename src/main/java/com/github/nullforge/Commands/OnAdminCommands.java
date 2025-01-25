@@ -10,16 +10,19 @@ import com.github.nullforge.MessageLoader;
 import com.github.nullforge.NullForge;
 import com.github.nullforge.Utils.ExpUtil;
 import com.github.nullforge.Utils.GemUtil;
-import java.util.HashMap;
-import java.util.Map;
+
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import com.github.nullforge.Utils.RandomUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
 public class OnAdminCommands implements CommandExecutor {
     @Override
@@ -31,7 +34,7 @@ public class OnAdminCommands implements CommandExecutor {
                 return true;
             }
 
-            if (args.length == 0 || (!args[0].equals("list") && !args[0].equals("give") && !args[0].equals("gem") && !args[0].equals("level") && !args[0].equals("loaddraw") && !args[0].equals("reload") && !args[0].equals("testexp"))) {
+            if (args.length == 0 || (!args[0].equals("list") && !args[0].equals("give") && !args[0].equals("gem") && !args[0].equals("level") && !args[0].equals("loaddraw") && !args[0].equals("reload") && !args[0].equals("testexp") && !args[0].equals("get"))) {
                 sendUsage(sender);
                 return true;
             }
@@ -58,6 +61,9 @@ public class OnAdminCommands implements CommandExecutor {
                 case "reload":
                     handleReload(sender);
                     break;
+                case "get":
+                    handleForgeGet(sender, args);
+                    break;
                 default:
                     sendUsage(sender);
                     break;
@@ -78,6 +84,7 @@ public class OnAdminCommands implements CommandExecutor {
         sender.sendMessage("§7 - §ftestexp §7§o#§A§o获取每级所需多少经验");
         sender.sendMessage("§7 - §floaddraw §7§o#§A§o重新载入图纸信息");
         sender.sendMessage("§7 - §freload §7§o#§A§o重新载入配置");
+        sender.sendMessage("§7 - §fget §7§o#§A§o直接获取锻造后的装备");
     }
 
     private void handleList(CommandSender sender) {
@@ -202,6 +209,140 @@ public class OnAdminCommands implements CommandExecutor {
         DrawManager.reset();
         Main.dataManger.getDrawData();
         sender.sendMessage("§c[系统]§a载入配置文件成功!");
+    }
+    private void handleForgeGet(CommandSender sender, String[] args) {
+        if (args.length < 2) {
+            sender.sendMessage("§7完整参数:");
+            sender.sendMessage("§7 - §fget <§c§o文件名§f> <§c§o玩家名§f> (可选)");
+            return;
+        }
+
+        String fileName = args[1]; // 获取文件名
+        Player targetPlayer = null;
+
+        if (args.length >= 3) {
+            targetPlayer = Bukkit.getPlayer(args[2]);
+        } else if (sender instanceof Player) {
+            targetPlayer = (Player) sender;
+        }
+
+        if (targetPlayer == null) {
+            sender.sendMessage("§c[系统]§a指定的玩家不在线或未提供玩家名!");
+            return;
+        }
+
+        boolean found = false;
+        for (DrawData drawData : DrawManager.getDrawData()) {
+            if (drawData.getFileName().equalsIgnoreCase(fileName)) { // 比较文件名
+                ItemStack resultItem = forgeItem(targetPlayer, drawData);
+                if (resultItem != null) {
+                    targetPlayer.getInventory().addItem(resultItem);
+                    sender.sendMessage("§c[系统]§a装备 " + fileName + " 已经给予到 " + targetPlayer.getName() + " 的背包中!");
+                    found = true;
+                    break;
+                }
+            }
+        }
+
+        if (!found) {
+            sender.sendMessage("§c[系统]§a没有找到名为 " + fileName + " 的图纸!");
+        }
+    }
+    private String generateStrengthBar(int attributeValue, int min, int max) {
+        float progress = (float) attributeValue / (float) (max - min);
+        int progressBarValue = (int) (progress * 25);
+
+        StringBuilder progressBar = new StringBuilder("§b[");
+        String barColor = "§c"; // 默认颜色
+        if (progressBarValue > 20) {
+            barColor = "§9";
+        } else if (progressBarValue > 15) {
+            barColor = "§3";
+        } else if (progressBarValue > 10) {
+            barColor = "§a";
+        } else if (progressBarValue > 5) {
+            barColor = "§e";
+        }
+        for (int i = 0; i < 25; i++) {
+            if (i < progressBarValue) {
+                progressBar.append(barColor + "|");
+            } else {
+                progressBar.append("§8|");
+            }
+        }
+        progressBar.append("§b]");
+        return progressBar.toString();
+    }
+    // 锻造逻辑方法
+    private ItemStack forgeItem(Player player, DrawData drawData) {
+        // 获取配置中的锻造品质概率
+        Map<String, Float> forgeChance = Settings.I.Forge_Chance;
+        Map<String, String> attribLevelText = Settings.I.Attrib_Level_Text;
+        Map<String, String> forgeAttrib = Settings.I.Forge_Attrib;
+
+        // 随机选择一个锻造品质
+        String qualityLevel = RandomUtil.probabString(forgeChance);
+        String qualityText = attribLevelText.get(qualityLevel);
+        String attributeRange = forgeAttrib.get(qualityLevel);
+
+        // 解析属性波动范围
+        String[] rangeParts = attributeRange.split(" => ");
+        int min = Integer.parseInt(rangeParts[0]);
+        int max = Integer.parseInt(rangeParts[1]);
+        Random random = new Random();
+        int attributeValue = random.nextInt(max - min + 1) + min;
+
+        // 生成强度条
+        String strengthBar = generateStrengthBar(attributeValue, min, max);
+
+        // 获取最终装备
+        ItemStack resultItem = drawData.getResult().clone();
+        ItemMeta resultMeta = resultItem.getItemMeta();
+        List<String> lore = resultMeta.hasLore() ? resultMeta.getLore() : new ArrayList<>();
+
+        // 添加属性描述并调整属性数值
+        List<String> adjustedAttrib = new ArrayList<>();
+        for (String attribute : drawData.getAttrib()) {
+            // 假设属性格式为 "属性名称: (基础值)" 或 "属性名称: (最小值)-(最大值)"
+            Pattern pattern = Pattern.compile("\\((\\d+)-(\\d+)\\)|\\((\\d+)\\)");
+            Matcher matcher = pattern.matcher(attribute);
+            while (matcher.find()) {
+                int baseValue;
+                int maxValue = 0;
+                if (matcher.group(1) != null && matcher.group(2) != null) {
+                    // 范围值
+                    baseValue = Integer.parseInt(matcher.group(1));
+                    maxValue = Integer.parseInt(matcher.group(2));
+                } else {
+                    // 单个值
+                    baseValue = Integer.parseInt(matcher.group(3));
+                }
+                int adjustedValue = baseValue + (int) (baseValue * (attributeValue / 100.0));
+                if (maxValue > 0) {
+                    int adjustedMaxValue = maxValue + (int) (maxValue * (attributeValue / 100.0));
+                    attribute = attribute.replaceAll("\\(" + baseValue + "-\\d+\\)", "(" + adjustedValue + "-" + adjustedMaxValue + ")");
+                } else {
+                    attribute = attribute.replaceAll("\\(" + baseValue + "\\)", String.valueOf(adjustedValue));
+                }
+            }
+            adjustedAttrib.add(attribute);
+        }
+
+        // 添加品质信息
+        adjustedAttrib.add(qualityText);
+
+        // 添加锻造者信息
+        adjustedAttrib.add(Settings.I.Attrib_Perce_Text + strengthBar);
+        adjustedAttrib.add(Settings.I.ForgeOwner.replace("<player>", player.getName()));
+        java.text.DateFormat df = java.text.DateFormat.getDateInstance(2, java.util.Locale.CHINA);
+        java.text.DateFormat df2 = java.text.DateFormat.getTimeInstance(2, java.util.Locale.CHINA);
+        String date = df.format(new Date()) + " " + df2.format(new Date());
+        adjustedAttrib.add(Settings.I.ForgeDate.replace("<date>", date));
+
+        resultMeta.setLore(adjustedAttrib);
+        resultItem.setItemMeta(resultMeta);
+
+        return resultItem;
     }
 
     public boolean isNum(String str) {
