@@ -36,7 +36,7 @@ public class BaoshiGUI implements Listener {
         // 创建合成按钮
         ItemStack synthesisButton = new ItemStack(Material.WOOL, 1, (byte) 13); // 绿色羊毛的数据值为 13
         ItemMeta synthesisMeta = synthesisButton.getItemMeta();
-        synthesisMeta.setDisplayName("§a合成");
+        synthesisMeta.setDisplayName("§a点击合成");
         synthesisButton.setItemMeta(synthesisMeta);
         inventory.setItem(SYNTHESIS_SLOT, synthesisButton);
 
@@ -109,16 +109,26 @@ public class BaoshiGUI implements Listener {
 
         // 检查宝石数量是否足够
         if (gems.size() < 2) {
-            player.sendMessage("§c合成失败：需要2个宝石！");
+            player.sendMessage("§7[§3神铸§7]§7需要2个及以上的宝石");
             return; // 不清空槽位，直接返回
         }
 
         // 检查是否有无法识别的物品
         boolean allGemsRecognized = true;
+        String gemName1 = null;
         for (ItemStack gem : gems) {
             ItemMeta meta = gem.getItemMeta();
             if (meta == null || !meta.hasDisplayName()) {
-                player.sendMessage("§c合成失败：无法识别的物品！");
+                player.sendMessage("§7[§3神铸§7]§7请确认放置的是正确的宝石类型");
+                allGemsRecognized = false;
+                break;
+            }
+            String displayName = meta.getDisplayName();
+            String pureName = BaoshiUtil.getPureGemName(displayName);
+            if (gemName1 == null) {
+                gemName1 = pureName;
+            } else if (!pureName.equals(gemName1)) {
+                player.sendMessage("§7[§3神铸§7]§7宝石的类型必须相同");
                 allGemsRecognized = false;
                 break;
             }
@@ -133,7 +143,7 @@ public class BaoshiGUI implements Listener {
         for (int i = 1; i < gems.size(); i++) {
             int level = getGemLevel(gems.get(i));
             if (level != level1) {
-                player.sendMessage("§c合成失败：宝石等级不匹配！");
+                player.sendMessage("§7[§3神铸§7]§7宝石的等级必须相同");
                 return; // 不清空槽位，直接返回
             }
         }
@@ -142,7 +152,7 @@ public class BaoshiGUI implements Listener {
         int amount1 = gems.get(0).getAmount();
         int amount2 = gems.get(1).getAmount();
         if (amount1 != amount2) {
-            player.sendMessage("§c合成失败：两边的宝石数量必须相同！");
+            player.sendMessage("§7[§3神铸§7]§7宝石的数量必须相同");
             return; // 不清空槽位，直接返回
         }
 
@@ -151,13 +161,13 @@ public class BaoshiGUI implements Listener {
         boolean synthesisResult = BaoshiUtil.checkAndGiveGem(player, gems, result);
 
         if (synthesisResult) {
-            player.sendMessage("§a合成成功 " + result[0] + " 个宝石，合成失败 " + result[1] + " 个宝石。");
+            player.sendMessage("§7[§3神铸§7]§7合成成功§a " + result[0] + " §7个宝石，合成失败§a " + result[1] + " §7个宝石");
             // 合成成功时清空宝石槽位
             for (int slot : GEM_SLOTS) {
                 inventory.setItem(slot, null);
             }
         } else {
-            player.sendMessage("§c合成失败：宝石消失！");
+            player.sendMessage("§7[§3神铸§7]§4合成失败");
             // 合成失败时清空宝石槽位
             for (int slot : GEM_SLOTS) {
                 inventory.setItem(slot, null);
