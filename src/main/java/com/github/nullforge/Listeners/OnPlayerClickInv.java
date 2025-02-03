@@ -243,7 +243,19 @@ public class OnPlayerClickInv implements Listener {
     @EventHandler
     public void close(InventoryCloseEvent e) {
         Player p = (Player) e.getPlayer();
-        if (e.getInventory().getTitle().equals("§c锻造系统")) {
+        String title = e.getInventory().getTitle();
+
+        // 判断关闭的是“图纸材料预览”界面
+        if (title != null && title.matches("§c§l图纸材料预览：.*")) {
+            // 重新打开“选择需要锻造的图纸”界面
+            Bukkit.getScheduler().runTaskLater(NullForge.INSTANCE, () -> {
+                int pageIndex = indexMap.getOrDefault(p.getName(), 0); // 获取当前页码，如果没有则默认为第一页
+                p.openInventory(SwitchDrawGUI.getGUI(p, pageIndex));
+            }, 3L); // 延迟1个tick
+        }
+
+        // 判断关闭的是“锻造系统”界面
+        if (title != null && title.equals("§c锻造系统")) {
             if (unClickList.contains(p.getName())) {
                 Inventory inv2 = e.getInventory();
                 if (inv2.getItem(13) != null) {
