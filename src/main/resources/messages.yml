@@ -1,5 +1,5 @@
 #方块破坏
-break-block: "§c[系统]§a你意外地在挖矿过程中获得了一块§e§l"
+Break-Block: "§c[系统]§a你意外地在挖矿过程中获得了一块§e§l"
 #图纸界面
 gui-first-page: "§c[系统]§a已经是第一页了!"
 gui-last-page: "§c[系统]§a已经是最后一页了!"
