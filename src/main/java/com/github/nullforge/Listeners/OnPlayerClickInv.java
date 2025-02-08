@@ -428,7 +428,7 @@ public class OnPlayerClickInv implements Listener {
                         .replace("%player%", playerName)
                         .replace("%quality%", quality)
                         .replace("%itemname%", itemName);
-                p.sendMessage(message);
+                Bukkit.broadcastMessage(message);
                 // 执行自定义命令
                 List<String> customCommands = dd.getCustomCommands();
                 for (String command : customCommands) {
@@ -459,19 +459,41 @@ public class OnPlayerClickInv implements Listener {
 
     // 获取最终锻造数量，并更改total中的物品数量
     private int getFinalCount(Map<ItemStack, Integer> total, List<ItemStack> flist) {
+        if (total == null || flist == null) {
+            return 0; // 如果 total 或 flist 为 null，直接返回 0
+        }
+
         List<Integer> counts = new ArrayList<>();
         for (ItemStack item : flist) {
+            if (item == null) {
+                continue; // 如果某个材料为 null，跳过
+            }
             ItemStack sample = item.clone();
             sample.setAmount(1);
-            int count = total.get(sample);
+            Integer count = total.get(sample);
+            if (count == null) {
+                count = 0; // 如果 total 中没有该材料，假设数量为 0
+            }
             counts.add(count / item.getAmount());
+        }
+
+        if (counts.isEmpty()) {
+            return 0; // 如果没有有效的材料，返回 0
         }
 
         int finalCount = Collections.min(counts);
         for (ItemStack item : flist) {
+            if (item == null) {
+                continue; // 如果某个材料为 null，跳过
+            }
             ItemStack sample = item.clone();
             sample.setAmount(1);
-            total.compute(sample, (k, v) -> v == null ? 0 : v - finalCount * item.getAmount());
+            total.compute(sample, (k, v) -> {
+                if (v == null) {
+                    return 0; // 如果 total 中没有该材料，返回 0
+                }
+                return v - finalCount * item.getAmount();
+            });
         }
         return finalCount;
     }
