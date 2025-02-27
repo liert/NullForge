@@ -64,7 +64,7 @@ public class BaoshiUtil {
         int failCount = 0;
 
         for (int i = 0; i < totalAmount / 2; i++) { // 每次合成需要2个宝石
-            if (random.nextDouble() < 0.4) { // 40%成功率
+            if (random.nextDouble() < 0.5) { // 40%成功率
                 successCount++;
             } else {
                 failCount++;

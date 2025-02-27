@@ -6,7 +6,6 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.Inventory;
@@ -21,7 +20,7 @@ public class BaoshiGUI implements Listener {
     private static final int SYNTHESIS_SLOT = 13; // 合成按钮槽位
 
     public static Inventory getGUI() {
-        Inventory inventory = Bukkit.createInventory(null, 27, "§b§l宝石合成界面");
+        Inventory inventory = Bukkit.createInventory(null, 27, "§c§l✠§f§l合成系统§c§l✠");
 
         // 创建占位物品
         ItemStack placeholder = createPlaceholder();
@@ -55,7 +54,7 @@ public class BaoshiGUI implements Listener {
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
         // 确保事件发生在合成界面
-        if (!event.getView().getTitle().equals("§b§l宝石合成界面")) {
+        if (!event.getView().getTitle().equals("§c§l✠§f§l合成系统§c§l✠")) {
             return;
         }
 
@@ -82,7 +81,7 @@ public class BaoshiGUI implements Listener {
     @EventHandler
     public void onInventoryClose(InventoryCloseEvent event) {
         // 确保事件发生在合成界面
-        if (!event.getView().getTitle().equals("§b§l宝石合成界面")) {
+        if (!event.getView().getTitle().equals("§c§l✠§f§l合成系统§c§l✠")) {
             return;
         }
 
@@ -109,7 +108,7 @@ public class BaoshiGUI implements Listener {
 
         // 检查宝石数量是否足够
         if (gems.size() < 2) {
-            player.sendMessage("§7[§3神铸§7]§7需要2个及以上的宝石");
+            player.sendMessage("§7[§3神铸§7]§7需要2个及以上的物品");
             return; // 不清空槽位，直接返回
         }
 
@@ -119,7 +118,7 @@ public class BaoshiGUI implements Listener {
         for (ItemStack gem : gems) {
             ItemMeta meta = gem.getItemMeta();
             if (meta == null || !meta.hasDisplayName()) {
-                player.sendMessage("§7[§3神铸§7]§7请确认放置的是正确的宝石类型");
+                player.sendMessage("§7[§3神铸§7]§7请确认放置的是正确的物品类型");
                 allGemsRecognized = false;
                 break;
             }
@@ -128,7 +127,7 @@ public class BaoshiGUI implements Listener {
             if (gemName1 == null) {
                 gemName1 = pureName;
             } else if (!pureName.equals(gemName1)) {
-                player.sendMessage("§7[§3神铸§7]§7宝石的类型必须相同");
+                player.sendMessage("§7[§3神铸§7]§7物品的类型必须相同");
                 allGemsRecognized = false;
                 break;
             }
@@ -143,7 +142,7 @@ public class BaoshiGUI implements Listener {
         for (int i = 1; i < gems.size(); i++) {
             int level = getGemLevel(gems.get(i));
             if (level != level1) {
-                player.sendMessage("§7[§3神铸§7]§7宝石的等级必须相同");
+                player.sendMessage("§7[§3神铸§7]§7物品的等级必须相同");
                 return; // 不清空槽位，直接返回
             }
         }
@@ -152,7 +151,7 @@ public class BaoshiGUI implements Listener {
         int amount1 = gems.get(0).getAmount();
         int amount2 = gems.get(1).getAmount();
         if (amount1 != amount2) {
-            player.sendMessage("§7[§3神铸§7]§7宝石的数量必须相同");
+            player.sendMessage("§7[§3神铸§7]§7物品的数量必须相同");
             return; // 不清空槽位，直接返回
         }
 
@@ -161,7 +160,7 @@ public class BaoshiGUI implements Listener {
         boolean synthesisResult = BaoshiUtil.checkAndGiveGem(player, gems, result);
 
         if (synthesisResult) {
-            player.sendMessage("§7[§3神铸§7]§7合成成功§a " + result[0] + " §7个宝石，合成失败§a " + result[1] + " §7个宝石");
+            player.sendMessage("§7[§3神铸§7]§7合成成功§a " + result[0] + " §7个物品，合成失败§a " + result[1] + " §7个物品");
             // 合成成功时清空宝石槽位
             for (int slot : GEM_SLOTS) {
                 inventory.setItem(slot, null);

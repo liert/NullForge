@@ -98,9 +98,9 @@ public class YamlManager implements DataManagerImpl {
             Bukkit.getConsoleSender().sendMessage("§8=============================================");
 
             // 打印加载成功的文件名，并添加序号
-            int index = 1;
+            //int index = 1;
             for (String s : DrawManager.getDrawNames()) {
-                Bukkit.getConsoleSender().sendMessage(String.format("§8|§a§l%2d. §r%s §a§l[已加载]", index++, s));
+                //Bukkit.getConsoleSender().sendMessage(String.format("§8|§a§l%2d. §r%s §a§l[已加载]", index++, s));
             }
             // 打印底部边框和总结信息
             Bukkit.getConsoleSender().sendMessage("§8=============================================");
