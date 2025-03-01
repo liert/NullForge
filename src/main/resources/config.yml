@@ -118,3 +118,6 @@ Exp_Text: "1,3,10,70,5,1,400,96"
 
 #提升属性几率的物品lore
 Attrib_Up_Item_Lore: "§a纯度:§e§l<chance>"
+
+# 一张图纸最多能使用多少强化石
+Draw_Chance_Up_Count: 20

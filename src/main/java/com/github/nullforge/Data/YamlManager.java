@@ -94,13 +94,13 @@ public class YamlManager implements DataManagerImpl {
         if (DrawManager.getDrawCount() > 0) {
             // 打印顶部边框
             Bukkit.getConsoleSender().sendMessage("§8=============================================");
-            Bukkit.getConsoleSender().sendMessage("§8| §a§lNullForge §8- §aVersion: §b1.0.0");
+            Bukkit.getConsoleSender().sendMessage("§8| §a§lNullForge §8- §aVersion: §b" + NullForge.INSTANCE.getDescription().getVersion());
             Bukkit.getConsoleSender().sendMessage("§8=============================================");
 
             // 打印加载成功的文件名，并添加序号
-            //int index = 1;
-            for (String s : DrawManager.getDrawNames()) {
-                //Bukkit.getConsoleSender().sendMessage(String.format("§8|§a§l%2d. §r%s §a§l[已加载]", index++, s));
+            List<String> draws = DrawManager.getDrawNames();
+            for (int i = 0; i < DrawManager.getDrawCount(); i++) {
+                Bukkit.getConsoleSender().sendMessage(String.format("§8|§a§l%2d. §r%s §a§l[已加载]", i + 1, draws.get(i)));
             }
             // 打印底部边框和总结信息
             Bukkit.getConsoleSender().sendMessage("§8=============================================");

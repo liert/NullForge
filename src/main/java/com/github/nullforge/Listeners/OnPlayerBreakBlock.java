@@ -1,7 +1,7 @@
 package com.github.nullforge.Listeners;
 
 import com.github.nullforge.Config.Settings;
-import com.github.nullforge.Main;
+import com.github.nullforge.Forge;
 import com.github.nullforge.MessageLoader;
 import com.github.nullforge.Utils.ItemMaker;
 import com.github.nullforge.Utils.RandomUtil;
@@ -18,8 +18,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.inventory.ItemStack;
 
-public class OnPlayerBreakBlock
-        implements Listener {
+public class OnPlayerBreakBlock implements Listener {
     @EventHandler
     public void blockBreak(BlockBreakEvent e) {
         Player p = e.getPlayer();
@@ -38,7 +37,7 @@ public class OnPlayerBreakBlock
             return;
         }
         List<Integer> list = Settings.I.Ore_Chance.get(id);
-        if (Main.rd.nextInt(1000) <= list.get(1)) {
+        if (Forge.rd.nextInt(1000) <= list.get(1)) {
             ItemStack item = new ItemStack(Material.getMaterial((int)list.get(0)));
             if (!Settings.I.Gem_Lore.containsKey(item.getTypeId())) {
                 return;

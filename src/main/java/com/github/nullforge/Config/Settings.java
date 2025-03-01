@@ -24,6 +24,7 @@ public class Settings {
     public String ForgeOwner;
     public String ForgeDate;
     public String Attrib_Up_Item_Lore;
+    public int Draw_Chance_Up_Count;
 
     public Settings() {
         I = this;

@@ -1,6 +1,6 @@
 name: NullForge
 main: com.github.nullforge.NullForge
-version: 1.0.0
+version: '${project.version}'
 depend: [NullCore, ProtocolLib, MythicMobs]
 commands:
   dz:

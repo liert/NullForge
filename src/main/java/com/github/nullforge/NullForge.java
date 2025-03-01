@@ -13,11 +13,11 @@ public class NullForge extends NullCore {
     @Override
     public void onEnable() {
         registerPlugin();
-        start("com.github.nullforge.Main");
+        start("com.github.nullforge.Forge");
     }
 
     @Override
     public void onDisable() {
-        stop("com.github.nullforge.Main");
+        stop("com.github.nullforge.Forge");
     }
 }

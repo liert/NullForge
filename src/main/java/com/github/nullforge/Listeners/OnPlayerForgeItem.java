@@ -3,7 +3,7 @@ package com.github.nullforge.Listeners;
 import com.github.nullforge.Config.Settings;
 import com.github.nullforge.Data.PlayerData;
 import com.github.nullforge.Event.PlayerForgeItemEvent;
-import com.github.nullforge.Main;
+import com.github.nullforge.Forge;
 import com.github.nullforge.MessageLoader;
 import com.github.nullforge.Utils.ExpUtil;
 import java.text.DecimalFormat;
@@ -26,9 +26,9 @@ public class OnPlayerForgeItem implements Listener {
             return;
         }
         int baseExp = Settings.I.Forge_Exp.get(gemLevel);
-        int floatExp = Main.rd.nextInt(Settings.I.Forge_Exp_Float);
+        int floatExp = Forge.rd.nextInt(Settings.I.Forge_Exp_Float);
         double expFloat = (double)baseExp * ((double)floatExp / 100.0);
-        double exp = Main.rd.nextBoolean() ? (double)baseExp + expFloat : (double)baseExp - expFloat;
+        double exp = Forge.rd.nextBoolean() ? (double)baseExp + expFloat : (double)baseExp - expFloat;
 
         // 使用 MessageLoader.getMessage() 加载消息并替换占位符
         String playerName = p.getName();

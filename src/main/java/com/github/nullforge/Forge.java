@@ -24,8 +24,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.RegisteredServiceProvider;
 
-public class Main {
-    public static Main INSTANCE;
+public class Forge {
+    public static Forge INSTANCE;
     public static DataManagerImpl dataManger;
     public static Economy vault;
     public static Random rd;
@@ -36,7 +36,7 @@ public class Main {
         rd = new Random();
     }
 
-    public Main() {
+    public Forge() {
         INSTANCE = this;
     }
 
