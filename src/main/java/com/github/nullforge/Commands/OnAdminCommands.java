@@ -277,21 +277,19 @@ public class OnAdminCommands implements CommandExecutor {
         }
 
         boolean found = false;
-        for (DrawData drawData : DrawManager.getDrawData()) {
-            if (drawData.getFileName().equalsIgnoreCase(fileName)) { // 比较文件名
-                ItemStack resultItem = forgeItemWithQuality(targetPlayer, drawData, quality, true); // 设置 isCommand 为 true
-                if (resultItem != null) {
-                    targetPlayer.getInventory().addItem(resultItem);
-                    sender.sendMessage("§c[系统]§a锻造装备 " + fileName + " 已经给予到 " + targetPlayer.getName() + " 的背包中!");
-                    found = true;
-                    break;
-                }
-            }
+        DrawData drawData = DrawManager.getDrawDataOfFileName(fileName);
+        if (drawData == null) {
+            sender.sendMessage("§c[系统]§a没有找到名为 " + fileName + " 的图纸!");
+            return;
         }
 
-        if (!found) {
-            sender.sendMessage("§c[系统]§a没有找到名为 " + fileName + " 的图纸!");
+        ItemStack resultItem = forgeItemWithQuality(targetPlayer, drawData, quality, true); // 设置 isCommand 为 true
+        if (resultItem == null) {
+            sender.sendMessage("§c[系统]§a不存在 " + quality + " 等级的装备!");
+            return;
         }
+        targetPlayer.getInventory().addItem(resultItem);
+        sender.sendMessage("§c[系统]§a锻造装备 " + fileName + " 已经给予到 " + targetPlayer.getName() + " 的背包中!");
     }
     private String generateStrengthBar(int attributeValue, int min, int max) {
         float progress = (float) (attributeValue - min) / (float) (max - min);
@@ -399,6 +397,7 @@ public class OnAdminCommands implements CommandExecutor {
         resultItem.setItemMeta(resultMeta); // 应用元数据
         return resultItem; // 返回最终的装备
     }
+
     public boolean isNum(String str) {
         Pattern pattern = Pattern.compile("[0-9]*");
         Matcher isNum = pattern.matcher(str);

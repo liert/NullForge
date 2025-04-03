@@ -26,6 +26,21 @@ public class DrawData {
     private List<String> attrib;
     private List<String> customCommands; // 新增字段
 
+    private DrawData(File file) {
+        YamlConfiguration drawConfig = YamlConfiguration.loadConfiguration(file);
+        this.file = file;
+        this.displayName = drawConfig.getString("name");
+        this.gem = drawConfig.getString("gem");
+        this.formula = drawConfig.getStringList("formula");
+        this.result = drawConfig.getString("result");
+        this.needGemLevel = drawConfig.getInt("gemlevel");
+        this.needPlayerLevel = drawConfig.getInt("playerlevel");
+        this.detail = drawConfig.getStringList("detail");
+        this.attrib = drawConfig.getStringList("attrib");
+        this.customCommands = drawConfig.getStringList("customCommands"); // 读取自定义命令
+        DrawManager.addDraw(this);
+    }
+
     public static void CreateDrawData(File file) {
         new DrawData(file);
     }
@@ -84,21 +99,6 @@ public class DrawData {
         meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
         item.setItemMeta(meta);
         return item;
-    }
-
-    private DrawData(File file) {
-        YamlConfiguration drawConfig = YamlConfiguration.loadConfiguration(file);
-        this.file = file;
-        this.displayName = drawConfig.getString("name");
-        this.gem = drawConfig.getString("gem");
-        this.formula = drawConfig.getStringList("formula");
-        this.result = drawConfig.getString("result");
-        this.needGemLevel = drawConfig.getInt("gemlevel");
-        this.needPlayerLevel = drawConfig.getInt("playerlevel");
-        this.detail = drawConfig.getStringList("detail");
-        this.attrib = drawConfig.getStringList("attrib");
-        this.customCommands = drawConfig.getStringList("customCommands"); // 读取自定义命令
-        DrawManager.addDraw(this);
     }
 
     public int getNeedGemLevel() {
