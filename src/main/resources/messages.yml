@@ -1,5 +1,5 @@
 #方块破坏
-Break-Block: "§7[§3锻造§7]§7你意外地在挖矿过程中获得了一块§A§l"
+Break-Block: "§7[§3锻造§7]§7你意外地在挖矿过程中获得了一块§A§l%gemitem%"
 #图纸界面
 gui-first-page: "§7[§3锻造§7]§7已经是第一页了"
 gui-last-page: "§7[§3锻造§7]§7已经是最后一页了"
@@ -50,3 +50,6 @@ gui-forge-click: "§a§l点击开中间图标始锻造..."
 gui-compose-gem1: "§c§l第一个原初之石"
 gui-compose-gem2: "§c§l第二个原初之石"
 gui-compose-click: "§a§l点击合成!"
+#V1.2.1新增预览图纸一键获取锻造材料
+admin-get-materials-success: "§7[§3锻造§7]§7已成功获取全部锻造材料"
+forge-inventory-full: "§7[§3锻造§7]§7背包空间不足，无法获取材料"

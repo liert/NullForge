@@ -18,6 +18,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -36,7 +37,7 @@ public class OnPlayerClickInv implements Listener {
     public static List<String> nextList = new ArrayList<>();
     public static List<String> unClickList = new ArrayList<>();
     public static Map<String, Integer> indexMap = new HashMap<>();
-
+    public static Map<String, DrawData> previewDrawMap = new HashMap<>();
     @EventHandler
     public void click(InventoryClickEvent e) {
         int slot = e.getRawSlot();
@@ -88,21 +89,91 @@ public class OnPlayerClickInv implements Listener {
                 p.openInventory(ForgeGUI.getGUI(dd.getDrawItem()));
             } else if (e.isRightClick()) {
                 // 右键点击：预览图纸所需材料
+                // 右键点击：预览图纸所需材料
                 Inventory previewInv = Bukkit.createInventory(null, 54, "§c§l图纸材料预览：" + dd.getDisplayName());
                 List<ItemStack> materials = dd.getFormula();
                 for (int i = 0; i < materials.size(); i++) {
                     previewInv.setItem(i, materials.get(i));
                 }
+
+                // 添加管理员按钮（第53号槽位）
+                if (p.hasPermission("nullforge.admin")) {
+                    ItemStack adminButton = new ItemStack(Material.NETHER_STAR);
+                    ItemMeta meta = adminButton.getItemMeta();
+                    meta.setDisplayName("§6§l[仅管理员可见] 一键获取材料");
+                    List<String> lore = new ArrayList<>();
+                    lore.add("§7点击获取本页展示的所有锻造材料");
+                    meta.setLore(lore);
+                    adminButton.setItemMeta(meta);
+                    previewInv.setItem(53, adminButton);
+
+                    // 存储当前预览的图纸数据
+                    previewDrawMap.put(p.getName(), dd);
+                }
                 p.openInventory(previewInv);
             }
         }
         if (invTitle != null && invTitle.matches("§c§l图纸材料预览：.*")) {
-            e.setCancelled(true); // 取消点击事件
-            if (e.isShiftClick()) {
+            e.setCancelled(true);
+
+            // 处理管理员按钮点击
+            if (slot == 53 && p.hasPermission("nullforge.admin")) {
+                DrawData dd = previewDrawMap.get(p.getName());
+                if (dd != null) {
+                    // 精确计算所需空间
+                    int requiredSlots = 0;
+                    for (ItemStack material : dd.getFormula()) {
+                        if (material == null || material.getType() == Material.AIR) continue;
+                        int maxStack = material.getType().getMaxStackSize();
+                        requiredSlots += (int) Math.ceil((double) material.getAmount() / maxStack);
+                    }
+
+                    // 获取实际空闲格子
+                    int emptySlots = (int) Arrays.stream(p.getInventory().getStorageContents())
+                            .filter(Objects::isNull)
+                            .count();
+
+                    // 空间不足直接返回
+                    if (emptySlots < requiredSlots) {
+                        p.sendMessage(MessageLoader.getMessage("forge-inventory-full"));
+                        p.playSound(p.getLocation(), Sound.BLOCK_ANVIL_PLACE, 1.0f, 0.5f);
+                        return;
+                    }
+
+                    // 尝试添加所有材料
+                    boolean success = true;
+                    List<ItemStack> clonedMaterials = new ArrayList<>();
+                    for (ItemStack material : dd.getFormula()) {
+                        ItemStack clone = material.clone();
+                        clonedMaterials.add(clone);
+                        HashMap<Integer, ItemStack> leftover = p.getInventory().addItem(clone);
+                        if (!leftover.isEmpty()) {
+                            success = false;
+                            break;
+                        }
+                    }
+                    // 处理宝石材料
+                    ItemStack gem = dd.getGem(); // 获取图纸所需的宝石
+                    if (gem != null) {
+                        ItemStack gemClone = gem.clone();
+                        HashMap<Integer, ItemStack> gemLeftover = p.getInventory().addItem(gemClone);
+                        if (!gemLeftover.isEmpty()) {
+                            success = false;
+                        }
+                    }
+                    // 处理添加结果
+                    if (success) {
+                        p.sendMessage(MessageLoader.getMessage("admin-get-materials-success"));
+                        p.playSound(p.getLocation(), Sound.ENTITY_ITEM_PICKUP, 1.0f, 1.0f);
+                    } else {
+                        // 回滚已添加物品
+                        clonedMaterials.forEach(m -> p.getInventory().removeItem(m));
+                        p.sendMessage(MessageLoader.getMessage("forge-inventory-full"));
+                        p.playSound(p.getLocation(), Sound.BLOCK_ANVIL_PLACE, 1.0f, 0.5f);
+                    }
+                }
+                return;
             }
-            if (e.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
-            }
-            return;
         }
         if (invTitle.equals("§c锻造系统")) {
             if (slot > 26) {
@@ -239,6 +310,8 @@ public class OnPlayerClickInv implements Listener {
 
         // 判断关闭的是“图纸材料预览”界面
         if (title != null && title.matches("§c§l图纸材料预览：.*")) {
+            // 清理预览数据
+            previewDrawMap.remove(p.getName());
             // 重新打开“选择需要锻造的图纸”界面
             Bukkit.getScheduler().runTaskLater(NullForge.INSTANCE, () -> {
                 int pageIndex = indexMap.getOrDefault(p.getName(), 0); // 获取当前页码，如果没有则默认为第一页

@@ -34,7 +34,7 @@ public class OnAdminCommands implements CommandExecutor {
                 return true;
             }
 
-            if (args.length == 0 || (!args[0].equals("list") && !args[0].equals("give") && !args[0].equals("gem") && !args[0].equals("level") && !args[0].equals("loaddraw") && !args[0].equals("reload") && !args[0].equals("testexp") && !args[0].equals("get") && !args[0].equals("random"))){
+            if (args.length == 0 || (!args[0].equals("list") && !args[0].equals("give") && !args[0].equals("level") && !args[0].equals("loaddraw") && !args[0].equals("reload") && !args[0].equals("testexp") && !args[0].equals("get") && !args[0].equals("random"))){
                 sendUsage(sender);
                 return true;
             }
@@ -45,9 +45,6 @@ public class OnAdminCommands implements CommandExecutor {
                     break;
                 case "give":
                     handleGive(sender, args);
-                    break;
-                case "gem":
-                    handleGem(sender, args);
                     break;
                 case "level":
                     handleLevel(sender, args);
@@ -82,7 +79,6 @@ public class OnAdminCommands implements CommandExecutor {
         sender.sendMessage("§7参数:");
         sender.sendMessage("§7 - §flist §7§o#§A§o查看列表所有图纸");
         sender.sendMessage("§7 - §fgive §7§o#§A§o给于指定玩家一个图纸");
-        sender.sendMessage("§7 - §fgem §7§o#§A§o给于指定玩家一个指定等级的锻造宝石");
         sender.sendMessage("§7 - §flevel §7§o#§A§o设置玩家的锻造等级");
         sender.sendMessage("§7 - §ftestexp §7§o#§A§o获取每级所需多少经验");
         sender.sendMessage("§7 - §floaddraw §7§o#§A§o重新载入图纸信息");
@@ -122,47 +118,6 @@ public class OnAdminCommands implements CommandExecutor {
         }
         targetPlayer.getInventory().addItem(drawData.getDrawItem());
         sender.sendMessage("§c[系统]§a图纸已经给予到" + targetPlayer.getName() + "的背包中");
-    }
-
-    private void handleGem(CommandSender sender, String[] args) {
-        if (args.length < 3) {
-            sender.sendMessage("§7完整参数:");
-            sender.sendMessage("§7 - §ffadmin gem <§c§oID§f> <§c§o等级§f> <§c§o玩家名§f>");
-            return;
-        }
-
-        Player targetPlayer = null;
-
-        if (args.length >= 4) {
-            targetPlayer = Bukkit.getPlayer(args[3]);
-        } else if (sender instanceof Player) {
-            targetPlayer = (Player) sender;
-        }
-
-        if (targetPlayer == null) {
-            sender.sendMessage("§c[系统]§a指定的玩家不在线或未提供玩家名!");
-            return;
-        }
-
-        String rawId = args[1];
-        String rawLevel = args[2];
-
-        if (!isNum(rawId) || !isNum(rawLevel)) {
-            sender.sendMessage("§c[系统]§a默认ID:388");
-            return;
-        }
-
-        int id = Integer.parseInt(rawId);
-        int level = Integer.parseInt(rawLevel);
-
-        if (!Settings.I.Gem_Lore.containsKey(id)) {
-            sender.sendMessage("§c[系统]§a不存在该宝石的配置!");
-            return;
-        }
-
-        ItemStack item = GemUtil.makeGem(id, level);
-        targetPlayer.getInventory().addItem(item);
-        sender.sendMessage("§c[系统]§a宝石已经给予到" + targetPlayer.getName() + "的背包中");
     }
 
     private void handleLevel(CommandSender sender, String[] args) {

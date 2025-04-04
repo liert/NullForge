@@ -70,7 +70,9 @@ public class OnPlayerBreakBlock implements Listener {
             Location loc = p.getLocation();
             World wd = loc.getWorld();
             wd.dropItem(loc, ItemMaker.create(item, name, newLore));
-            p.sendMessage(MessageLoader.getMessage("Break-Block") + name);
+            // 格式化消息并发送给玩家
+            String formattedMessage = MessageLoader.getMessage("Break-Block").replace("%gemitem%", name);
+            p.sendMessage(formattedMessage);
         }
     }
 }
