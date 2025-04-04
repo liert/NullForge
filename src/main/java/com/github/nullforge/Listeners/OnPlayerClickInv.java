@@ -394,6 +394,7 @@ public class OnPlayerClickInv implements Listener {
             tempItemStack.analysisItem();
 
             List<ItemStack> finalResult = new ArrayList<>();
+            Map<String, Integer> qualityMap = new HashMap<>();
             for (int i = 0; i < finalCount; ++i) {
                 int addChance = tempItemStack.getLuckStoneChance();
                 if (addChance > 0) {
@@ -472,15 +473,10 @@ public class OnPlayerClickInv implements Listener {
                 resultMeta.setLore(lore);
                 resultItem.setItemMeta(resultMeta);
                 finalResult.add(resultItem);
-                // 锻造完成，发送全服广播
-                p.sendMessage(MessageLoader.getMessage("forge-finish")); // 锻造成功
-                String playerName = p.getName();
-                String itemName = resultItem.getItemMeta().getDisplayName();
-                String message = MessageLoader.getMessage("forge-broadcast") // 全服广播
-                        .replace("%player%", playerName)
-                        .replace("%quality%", quality)
-                        .replace("%itemname%", itemName);
-                Bukkit.broadcastMessage(message);
+
+                // 统计品质
+                qualityMap.put(quality, qualityMap.getOrDefault(quality, 0) + 1);
+
                 // 执行自定义命令
                 List<String> customCommands = dd.getCustomCommands();
                 for (String command : customCommands) {
@@ -488,6 +484,27 @@ public class OnPlayerClickInv implements Listener {
                     Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command); // 执行命令
                 }
             }
+
+            // 构建全服公告
+            StringBuilder qualities = new StringBuilder();
+            for (Map.Entry<String, Integer> entry : qualityMap.entrySet()) {
+                qualities.append(entry.getKey()).append(entry.getValue()).append("件 ");
+            }
+
+            // 发送全服公告
+            String playerName = p.getName();
+            String itemName = finalResult.get(0).getItemMeta().getDisplayName();
+            String message = MessageLoader.getMessage("forge-broadcast")
+                    .replace("%player%", playerName)
+                    .replace("%totel%", String.valueOf(finalResult.size()))
+                    .replace("%itemname%", itemName)
+                    .replace("%qualities%", qualities.toString());
+            Bukkit.broadcastMessage(message);
+
+            // 返还无效和多余的材料
+            tempItemStack.toPlayerInv();
+
+            // 打开锻造结果界面
             int invSize = finalResult.size() + (9 - finalResult.size() % 9);
             Inventory rInv = Bukkit.createInventory(null, invSize, "§c§l锻造结果");
             for (int i = 0; i < finalResult.size(); ++i) {
@@ -496,9 +513,6 @@ public class OnPlayerClickInv implements Listener {
                 PlayerForgeItemEvent event = new PlayerForgeItemEvent(p, item.clone(), dd);
                 Bukkit.getServer().getPluginManager().callEvent(event);
             }
-            // 返还无效和多余的材料
-            // playerAddItem(p);
-            tempItemStack.toPlayerInv();
             Bukkit.getScheduler().runTaskLater(NullForge.INSTANCE, () -> p.openInventory(rInv), 20L);
         }
         if (e.getInventory().getTitle().equals("§c§l锻造结果")) {

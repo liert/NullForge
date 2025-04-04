@@ -26,10 +26,10 @@ forge-ing: "§7[§3锻造§7]§7正在锻造中....请稍后...."
 forge-null: "§7[§3锻造§7]§7锻造材料不匹配,系统已返回你所有放置的物品"
 forge-hoist: "§7[§3锻造§7]§7你使用了品质属性增加道具增加了品质几率§A§l%addchance%"
 forge-finish: "§7[§3锻造§7]§7恭喜你锻造成功.请取出你锻造出来的神器"
-forge-broadcast: "§7[§3锻造§7]§7玩家 §a%player% §7锻造出 %quality% §7的 %itemname%"
+forge-broadcast: "§7[§3锻造§7]§7玩家 §a%player% §7锻造出 %totel% §7件 %itemname% §7详情 %qualities%"
 #锻造等级
 forge-max-level: "§7[§3锻造§7]§7你的锻造等级已经达到了最大等级"
-forge-exp-gain: "§7[§3锻造§7]§7获得了锻造经验§A%exp%§7点"
+forge-exp-gain: "§7[§3锻造§7]§7总共获得锻造经验§A%exp%§7点"
 forge-level-up: "§7[§3锻造§7]§7恭喜你!锻造等级升到了§A%level%§7级,锻造技术更上一层楼"
 forge-exp-progress: "§7[§3锻造§7]§7你离下一级还需要锻造经验§A%currentexp%§8/§b%needexp%点"
 #图纸交互
