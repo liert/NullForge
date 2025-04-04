@@ -11,11 +11,15 @@ public class PlayerForgeItemEvent extends Event {
     private Player p;
     private ItemStack item;
     private DrawData draw;
+    private boolean isFinalForge; // 标记是否是最后一次锻造
+    private double totalExp; // 总经验
 
-    public PlayerForgeItemEvent(Player p, ItemStack item, DrawData draw) {
+    public PlayerForgeItemEvent(Player p, ItemStack item, DrawData draw, boolean isFinalForge, double totalExp) {
         this.p = p;
         this.item = item;
         this.draw = draw;
+        this.isFinalForge = isFinalForge;
+        this.totalExp = totalExp;
     }
 
     public Player getPlayer() {
@@ -30,6 +34,14 @@ public class PlayerForgeItemEvent extends Event {
         return this.draw;
     }
 
+    public boolean isFinalForge() {
+        return isFinalForge;
+    }
+
+    public double getTotalExp() {
+        return totalExp;
+    }
+
     public HandlerList getHandlers() {
         return handlers;
     }
@@ -38,4 +50,3 @@ public class PlayerForgeItemEvent extends Event {
         return handlers;
     }
 }
-

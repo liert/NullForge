@@ -30,7 +30,8 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
-
+import net.md_5.bungee.api.chat.ComponentBuilder;
+import net.md_5.bungee.api.chat.HoverEvent;
 public class OnPlayerClickInv implements Listener {
     public static Map<String, List<ItemStack>> tempItemMap = new HashMap<>();
     public static Map<String, DrawData> drawPlayerMap = new HashMap<>();
@@ -494,15 +495,41 @@ public class OnPlayerClickInv implements Listener {
             // 发送全服公告
             String playerName = p.getName();
             String itemName = finalResult.get(0).getItemMeta().getDisplayName();
-            String message = MessageLoader.getMessage("forge-broadcast")
+            String baseMessage = MessageLoader.getMessage("forge-broadcast")
                     .replace("%player%", playerName)
                     .replace("%totel%", String.valueOf(finalResult.size()))
                     .replace("%itemname%", itemName)
-                    .replace("%qualities%", qualities.toString());
-            Bukkit.broadcastMessage(message);
+                    .replace("%qualities%", "鼠标悬浮查看");
+
+            // 创建悬浮提示内容
+            StringBuilder hoverText = new StringBuilder();
+            hoverText.append("品质详情:\n");
+            for (Map.Entry<String, Integer> entry : qualityMap.entrySet()) {
+                hoverText.append(" - ").append(entry.getKey()).append(" ").append(entry.getValue()).append("件\n");
+            }
+
+            // 使用 ComponentBuilder 构建悬浮提示
+            ComponentBuilder builder = new ComponentBuilder(baseMessage);
+            builder.event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(hoverText.toString()).create()));
+
+            // 广播消息
+            for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
+                onlinePlayer.spigot().sendMessage(builder.create());
+            }
 
             // 返还无效和多余的材料
             tempItemStack.toPlayerInv();
+            // 计算总经验
+            double totalExp = 0.0;
+            for (int i = 0; i < finalResult.size(); ++i) {
+                // 计算每次锻造的经验
+                int gemLevel = dd.getNeedGemLevel();
+                int baseExp = Settings.I.Forge_Exp.get(gemLevel);
+                int floatExp = Forge.rd.nextInt(Settings.I.Forge_Exp_Float);
+                double expFloat = (double)baseExp * ((double)floatExp / 100.0);
+                double exp = Forge.rd.nextBoolean() ? (double)baseExp + expFloat : (double)baseExp - expFloat;
+                totalExp += exp;
+            }
 
             // 打开锻造结果界面
             int invSize = finalResult.size() + (9 - finalResult.size() % 9);
@@ -510,10 +537,12 @@ public class OnPlayerClickInv implements Listener {
             for (int i = 0; i < finalResult.size(); ++i) {
                 ItemStack item = finalResult.get(i);
                 rInv.setItem(i, item);
-                PlayerForgeItemEvent event = new PlayerForgeItemEvent(p, item.clone(), dd);
-                Bukkit.getServer().getPluginManager().callEvent(event);
             }
             Bukkit.getScheduler().runTaskLater(NullForge.INSTANCE, () -> p.openInventory(rInv), 20L);
+
+            // 只触发一次 PlayerForgeItemEvent
+            PlayerForgeItemEvent event = new PlayerForgeItemEvent(p, finalResult.get(0).clone(), dd, true, totalExp);
+            Bukkit.getServer().getPluginManager().callEvent(event);
         }
         if (e.getInventory().getTitle().equals("§c§l锻造结果")) {
             PlayerInventory playerInventory = p.getInventory();

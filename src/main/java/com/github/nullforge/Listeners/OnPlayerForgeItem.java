@@ -21,42 +21,52 @@ public class OnPlayerForgeItem implements Listener {
             p.sendMessage(MessageLoader.getMessage("forge-max-level"));
             return;
         }
-        int gemLevel = e.getDraw().getNeedGemLevel();
-        if (!Settings.I.Forge_Exp.containsKey(gemLevel)) {
-            return;
-        }
-        int baseExp = Settings.I.Forge_Exp.get(gemLevel);
-        int floatExp = Forge.rd.nextInt(Settings.I.Forge_Exp_Float);
-        double expFloat = (double)baseExp * ((double)floatExp / 100.0);
-        double exp = Forge.rd.nextBoolean() ? (double)baseExp + expFloat : (double)baseExp - expFloat;
 
-        // 使用 MessageLoader.getMessage() 加载消息并替换占位符
-        String playerName = p.getName();
-        String gainExpMessage = MessageLoader.getMessage("forge-exp-gain")
-                .replace("%player%", playerName)
-                .replace("%exp%", new DecimalFormat("###.00").format(exp));
-        p.sendMessage(gainExpMessage);
+        // 直接使用事件中的总经验
+        double totalExp = e.getTotalExp();
 
+        // 累加经验
         double PlayerExp = pd.getExp();
-        double needExp = ExpUtil.getNeedExp(p);
-        if (PlayerExp + exp >= needExp) {
-            pd.setLevel(pd.getLevel() + 1);
-            pd.setExp(PlayerExp + exp - needExp);
+        double newExp = PlayerExp + totalExp;
 
-            // 发送升级成功的消息
-            String levelUpMessage = MessageLoader.getMessage("forge-level-up")
-                    .replace("%level%", String.valueOf(pd.getLevel()));
-            p.sendMessage(levelUpMessage);
+        StringBuilder messageBuilder = new StringBuilder();
+
+        // 检查是否升级
+        double needExp = ExpUtil.getNeedExp(p);
+        if (newExp >= needExp) {
+            int levelsGained = 0;
+            while (newExp >= needExp) {
+                levelsGained++;
+                newExp -= needExp;
+                pd.setLevel(pd.getLevel() + 1);
+                needExp = ExpUtil.getNeedExp(p);
+            }
+            pd.setExp(newExp);
+
+            // 构建升级消息
+            if (levelsGained == 1) {
+                messageBuilder.append(MessageLoader.getMessage("forge-level-up")
+                        .replace("%level%", String.valueOf(pd.getLevel())));
+            } else {
+                messageBuilder.append(MessageLoader.getMessage("forge-level-up-multi")
+                        .replace("%levels%", String.valueOf(levelsGained))
+                        .replace("%newlevel%", String.valueOf(pd.getLevel())));
+            }
         } else {
-            pd.setExp(PlayerExp + exp);
+            pd.setExp(newExp);
         }
 
-        needExp = ExpUtil.getNeedExp(p);
-        // 发送当前经验进度的消息
-        String progressMessage = MessageLoader.getMessage("forge-exp-progress")
+        // 构建经验获得消息
+        messageBuilder.append("\n").append(MessageLoader.getMessage("forge-exp-gain")
+                .replace("%player%", p.getName())
+                .replace("%exp%", new DecimalFormat("###.00").format(totalExp)));
 
+        // 构建经验进度消息
+        messageBuilder.append("\n").append(MessageLoader.getMessage("forge-exp-progress")
                 .replace("%currentexp%", new DecimalFormat("###.00").format(pd.getExp()))
-                .replace("%needexp%", new DecimalFormat("###.00").format(needExp));
-        p.sendMessage(progressMessage);
+                .replace("%needexp%", new DecimalFormat("###.00").format(needExp)));
+
+        // 发送消息
+        p.sendMessage(messageBuilder.toString());
     }
 }
