@@ -32,6 +32,7 @@ forge-max-level: "§7[§3锻造§7]§7你的锻造等级已经达到了最大等
 forge-exp-gain: "§7[§3锻造§7]§7总共获得锻造经验§A%exp%§7点"
 forge-level-up: "§7[§3锻造§7]§7恭喜你!锻造等级升到了§A%level%§7级,锻造技术更上一层楼"
 forge-exp-progress: "§7[§3锻造§7]§7你离下一级还需要锻造经验§A%currentexp%§8/§b%needexp%点"
+forge-level-up-multi: "&a恭喜你，%player%！你一次性升了%levels%级，当前等级为%newlevel%！"
 #图纸交互
 draw-not-level: "§7[§3锻造§7]§7你的等级不足以学习该锻造图纸"
 draw-disused: "§7[§3锻造§7]§7该图纸已经废弃,无法使用"

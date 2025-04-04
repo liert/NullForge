@@ -11,8 +11,6 @@ public class PlayerForgeItemEvent extends Event {
     private Player p;
     private ItemStack item;
     private DrawData draw;
-    private boolean isBatchForge = false; // 标记是否是批量锻造
-    private double totalExp = 0; // 用于累加批量锻造的总经验
 
     public PlayerForgeItemEvent(Player p, ItemStack item, DrawData draw) {
         this.p = p;
@@ -32,23 +30,6 @@ public class PlayerForgeItemEvent extends Event {
         return this.draw;
     }
 
-    public boolean isBatchForge() {
-        return isBatchForge;
-    }
-
-    public void setBatchForge(boolean batchForge) {
-        this.isBatchForge = batchForge;
-    }
-
-    public void addExp(double exp) {
-        this.totalExp += exp;
-    }
-
-    public double getTotalExp() {
-        return this.totalExp;
-    }
-
-    @Override
     public HandlerList getHandlers() {
         return handlers;
     }
@@ -57,3 +38,4 @@ public class PlayerForgeItemEvent extends Event {
         return handlers;
     }
 }
+
