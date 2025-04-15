@@ -9,7 +9,6 @@ import com.github.nullforge.Forge;
 import com.github.nullforge.MessageLoader;
 import com.github.nullforge.NullForge;
 import com.github.nullforge.Utils.ExpUtil;
-import com.github.nullforge.Utils.GemUtil;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -231,7 +230,6 @@ public class OnAdminCommands implements CommandExecutor {
             return;
         }
 
-        boolean found = false;
         DrawData drawData = DrawManager.getDrawDataOfFileName(fileName);
         if (drawData == null) {
             sender.sendMessage("§c[系统]§a没有找到名为 " + fileName + " 的图纸!");
@@ -243,6 +241,7 @@ public class OnAdminCommands implements CommandExecutor {
             sender.sendMessage("§c[系统]§a不存在 " + quality + " 等级的装备!");
             return;
         }
+
         targetPlayer.getInventory().addItem(resultItem);
         sender.sendMessage("§c[系统]§a锻造装备 " + fileName + " 已经给予到 " + targetPlayer.getName() + " 的背包中!");
     }
@@ -304,7 +303,13 @@ public class OnAdminCommands implements CommandExecutor {
         String strengthBar = generateStrengthBar(attributeValue, min, max);
 
         // 获取最终装备并调整属性
-        ItemStack resultItem = drawData.getResult().clone(); // 克隆图纸的结果物品
+        ItemStack itemStack = drawData.getResult();
+        if (itemStack == null) {
+            player.sendMessage(MessageLoader.getMessage("mm-null-item"));
+            return null; // 如果物品为空，返回 null
+        }
+
+        ItemStack resultItem = itemStack.clone(); // 克隆图纸的结果物品
         ItemMeta resultMeta = resultItem.getItemMeta(); // 获取物品的元数据
 
         // 保留原始物品的 lore

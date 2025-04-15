@@ -1,6 +1,7 @@
 package com.github.nullforge.Data;
 
 import com.github.nullforge.Config.Settings;
+import com.github.nullforge.MessageLoader;
 import com.github.nullforge.Utils.ItemMaker;
 import com.github.nullforge.Utils.ItemString;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -82,7 +83,11 @@ public class DrawData {
     }
 
     public ItemStack getResult() {
-        return ItemString.getItem(this.result);
+        ItemStack itemStack = ItemString.getItem(this.result);
+        if (itemStack == null) {
+            throw new NullPointerException(MessageLoader.getMessage("mm-null-item"));
+        }
+        return itemStack;
     }
 
     public void setResult(ItemStack item) {
