@@ -262,7 +262,7 @@ public class OnAdminCommands implements CommandExecutor {
         }
         for (int i = 0; i < 25; i++) {
             if (i < progressBarValue) {
-                progressBar.append(barColor + "|");
+                progressBar.append(barColor).append("|");
             } else {
                 progressBar.append("§8|");
             }

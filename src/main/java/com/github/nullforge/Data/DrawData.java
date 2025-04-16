@@ -207,11 +207,11 @@ public class DrawData {
         result = result * PRIME + this.getNeedGemLevel();
         result = result * PRIME + this.getNeedPlayerLevel();
         List<String> $detail = this.getDetail();
-        result = result * PRIME + ($detail == null ? 43 : ((Object) $detail).hashCode());
+        result = result * PRIME + ($detail == null ? 43 : $detail.hashCode());
         List<String> $attrib = this.getAttrib();
-        result = result * PRIME + ($attrib == null ? 43 : ((Object) $attrib).hashCode());
+        result = result * PRIME + ($attrib == null ? 43 : $attrib.hashCode());
         List<String> $customCommands = this.getCustomCommands(); // 添加自定义命令的哈希码
-        result = result * PRIME + ($customCommands == null ? 43 : ((Object) $customCommands).hashCode());
+        result = result * PRIME + ($customCommands == null ? 43 : $customCommands.hashCode());
         return result;
     }
 
