@@ -1,23 +1,8 @@
 package com.github.nullforge;
 
-import com.github.nullcore.NullCore;
+import com.github.nullcore.annotation.EntryAnnotation;
+import com.github.nullcore.plugin.NullPlugin;
 
-public class NullForge extends NullCore {
-    public static NullForge INSTANCE;
-
-    @Override
-    public void onLoad() {
-        INSTANCE = this;
-    }
-
-    @Override
-    public void onEnable() {
-        registerPlugin();
-        start("com.github.nullforge.Forge");
-    }
-
-    @Override
-    public void onDisable() {
-        stop("com.github.nullforge.Forge");
-    }
+@EntryAnnotation("com.github.nullforge.Forge")
+public class NullForge extends NullPlugin {
 }
