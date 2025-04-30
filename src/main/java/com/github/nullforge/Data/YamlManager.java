@@ -1,9 +1,10 @@
 package com.github.nullforge.Data;
 
+import com.github.nullforge.Config.GlobalConfig;
 import com.github.nullforge.NullForge;
 import com.github.nullforge.Utils.ItemString;
 import java.io.File;
-import java.util.ArrayList;
+import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import org.bukkit.Bukkit;
@@ -11,61 +12,51 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-public class YamlManager implements DataManagerImpl {
-    @Override
-    public void getPlayerData(Player p) {
-        PlayerData pd;
-        File playerDataFolder = new File(NullForge.INSTANCE.getDataFolder(), "players");
+public class YamlManager {
+    public void loadPlayerData(Player p) {
+        File playerDataFolder = GlobalConfig.getPlayerFolder();
         File playerConfigFile = new File(playerDataFolder, p.getName() + ".yml");
-        YamlConfiguration playerConfig = YamlConfiguration.loadConfiguration(playerConfigFile);
+        PlayerData playerData;
         if (playerConfigFile.exists()) {
+            YamlConfiguration playerConfig = YamlConfiguration.loadConfiguration(playerConfigFile);
             int level = playerConfig.getInt("level");
             double exp = playerConfig.getDouble("exp");
             List<String> learn = playerConfig.getStringList("learn");
-            pd = new PlayerData(level, exp, learn);
+            playerData = new PlayerData(p.getName(), level, exp, learn);
         } else {
-            playerConfig.set("level", 0);
-            playerConfig.set("exp", 0.0);
-            playerConfig.set("learn", new ArrayList<>());
             try {
-                playerConfig.save(playerConfigFile);
-            }
-            catch (Exception e) {
+                playerData = new PlayerData(p.getName());
+                playerData.savePlayer();
+            } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-            pd = new PlayerData(0, 0.0, new ArrayList<>());
         }
-        PlayerData.pMap.put(p.getName(), pd);
+        PlayerData.pMap.put(p.getName(), playerData);
     }
 
-    @Override
     public void savePlayerData(Player p) {
         if (!PlayerData.pMap.containsKey(p.getName())) {
             return;
         }
-        PlayerData pd = PlayerData.pMap.get(p.getName());
-        File playerDataFolder = new File(NullForge.INSTANCE.getDataFolder(), "players");
-        File playerConfigFile = new File(playerDataFolder, p.getName() + ".yml");
-        YamlConfiguration playerConfig = YamlConfiguration.loadConfiguration(playerConfigFile);
-        playerConfig.set("level", pd.getLevel());
-        playerConfig.set("exp", pd.getExp());
-        playerConfig.set("learn", pd.getLearn());
         try {
-            playerConfig.save(playerConfigFile);
+            PlayerData pd = PlayerData.pMap.get(p.getName());
+            pd.savePlayer();
         }
         catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    @Override
-    public void getDrawData() {
-        File drawDataFolder = new File(NullForge.INSTANCE.getDataFolder(), "draw");
-        // 确保目录存在
-        if (!drawDataFolder.exists()) {
-            boolean ignore = drawDataFolder.mkdirs();
-            Bukkit.getConsoleSender().sendMessage("§c[系统]§a创建了 'draw' 文件夹.");
+    public void reloadPlayerData() {
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            savePlayerData(player);
+            PlayerData.pMap.clear();
+            loadPlayerData(player);
         }
+    }
+
+    public void loadDrawData() {
+        File drawDataFolder = GlobalConfig.getDrawFolder();
         File defaultDrawFile = new File(drawDataFolder, "example.yml");
         if (!defaultDrawFile.exists()) {
             NullForge.INSTANCE.saveResource("draw/example.yml", true);
@@ -96,13 +87,8 @@ public class YamlManager implements DataManagerImpl {
             Bukkit.getConsoleSender().sendMessage("§8=============================================");
             Bukkit.getConsoleSender().sendMessage("§8| §a§lNullForge §8- §aVersion: §b" + NullForge.INSTANCE.getDescription().getVersion());
 
-            // 打印加载成功的文件名，并添加序号
-            //List<String> draws = DrawManager.getDrawNames();
-            //for (int i = 0; i < DrawManager.getDrawCount(); i++) {
-            //    Bukkit.getConsoleSender().sendMessage(String.format("§8|§a§l%2d. §r%s §a§l[已加载]", i + 1, draws.get(i)));
-            //}
             // 打印底部边框和总结信息
-            Bukkit.getConsoleSender().sendMessage("§8=============================================");
+            Bukkit.getConsoleSender().sendMessage("");
             Bukkit.getConsoleSender().sendMessage(String.format("§8| §a共加载了 %d 个图纸, 耗时 %d 毫秒", DrawManager.getDrawCount(), diff));
             Bukkit.getConsoleSender().sendMessage("§8=============================================");
         } else {
@@ -113,26 +99,22 @@ public class YamlManager implements DataManagerImpl {
         }
     }
 
-    @Override
     public void saveDrawData() {
         for (DrawData drawData : DrawManager.getDrawData()) {
-            YamlConfiguration drawConfig = YamlConfiguration.loadConfiguration(drawData.getFile());
-            drawConfig.set("gem", ItemString.getString(drawData.getGem()));
-            List<ItemStack> list = drawData.getFormula();
-            StringBuilder sb = new StringBuilder();
-            for (ItemStack item : list) {
-                sb.append(ItemString.getString(item)).append(",");
+            try {
+                drawData.saveDraw();
+            } catch (Exception e) {
+                Bukkit.getConsoleSender().sendMessage(drawData.getDisplayName() + " §c保存失败");
             }
-            drawConfig.set("formula", sb.toString());
-            drawConfig.set("result", ItemString.getString(drawData.getResult()));
-            drawConfig.set("gemlevel", drawData.getNeedGemLevel());
-            drawConfig.set("playerlevel", drawData.getNeedPlayerLevel());
-            drawConfig.set("detail", drawData.getDetail());
-            drawConfig.set("attrib", drawData.getAttrib());
         }
     }
 
-    @Override
+    public void reloadDrawData() {
+        saveDrawData();
+        DrawManager.reset();
+        loadDrawData();
+    }
+
     public void delDraw(String name) {
         File drawDataFolder = new File(NullForge.INSTANCE.getDataFolder(), "draw");
         File drawConfigFile = new File(drawDataFolder, name + ".yml");
@@ -141,12 +123,16 @@ public class YamlManager implements DataManagerImpl {
         }
     }
 
-    @Override
     public String getDrawName(String name) {
         File drawDataFolder = new File(NullForge.INSTANCE.getDataFolder(), "draw");
         File drawConfigFile = new File(drawDataFolder, name + ".yml");
         YamlConfiguration drawConfig = YamlConfiguration.loadConfiguration(drawConfigFile);
         return drawConfig.getString("name");
+    }
+
+    public void reload() {
+        reloadDrawData();
+        reloadPlayerData();
     }
 }
 

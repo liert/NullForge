@@ -10,7 +10,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 public class OnPlayerJoin implements Listener {
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent e) {
-        Forge.dataManger.getPlayerData(e.getPlayer());
+        Forge.dataManger.loadPlayerData(e.getPlayer());
     }
 
     @EventHandler

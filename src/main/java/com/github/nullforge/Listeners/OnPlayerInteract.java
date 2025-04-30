@@ -4,6 +4,7 @@ import com.github.nullforge.Data.DrawData;
 import com.github.nullforge.Data.DrawManager;
 import com.github.nullforge.Data.PlayerData;
 import com.github.nullforge.MessageLoader;
+import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -63,7 +64,10 @@ public class OnPlayerInteract implements Listener {
         // 学习图纸
         learn.add(displayName);
         playerData.setLearn(learn);
-        playerInventory.setItemInMainHand(new ItemStack(Material.AIR)); // 移除图纸
+        // 创造模式下不移除图纸
+        if (p.getGameMode() != GameMode.CREATIVE) {
+            playerInventory.setItemInMainHand(new ItemStack(Material.AIR));
+        }
         String message = MessageLoader.getMessage("draw-learn-succeed").replace("%draw_name%", displayName);
         p.sendMessage(message);
     }

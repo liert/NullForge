@@ -1,3 +1,6 @@
+Draw_Folder: ""
+Player_Folder: ""
+
 Ore_Chance:
     56:
         #掉落的物品ID，GEM_LORE内必须有该物品ID 佛则会报错

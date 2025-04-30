@@ -5,6 +5,8 @@ import java.util.Map;
 
 public class Settings {
     public static Settings I;
+    public String Draw_Folder;
+    public String Player_Folder;
     public Map<Integer, List<Integer>> Ore_Chance;
     public List<String> Ore_Worlds;
     public Map<Integer, List<String>> Gem_Lore;

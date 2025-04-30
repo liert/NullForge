@@ -1,24 +1,40 @@
 package com.github.nullforge.Data;
 
-import java.beans.ConstructorProperties;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import com.github.nullforge.Config.GlobalConfig;
+import org.bukkit.configuration.file.YamlConfiguration;
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
 
 public class PlayerData {
     public static Map<String, PlayerData> pMap = new HashMap<>();
+    private String playerName;
     private int Level;
     private double Exp;
     List<String> learn;
 
-    @ConstructorProperties(value={"Level", "Exp", "learn"})
-    public PlayerData(int Level2, double Exp, List<String> learn) {
-        this.Level = Level2;
-        this.Exp = Exp;
+    public PlayerData(String playerName) {
+        this.playerName = playerName;
+        this.Level = 0;
+        this.Exp = 0;
+        this.learn = new ArrayList<>();
+    }
+
+    public PlayerData(String playerName, int level, double exp, List<String> learn) {
+        this.playerName = playerName;
+        this.Level = level;
+        this.Exp = exp;
         this.learn = learn;
     }
 
-    public PlayerData() {
+    public File savePlayer() throws IOException {
+        YamlConfiguration playerData = new YamlConfiguration();
+        playerData.set("level", this.Level);
+        playerData.set("exp", this.Exp);
+        playerData.set("learn", this.learn);
+        File playerFile = new File(GlobalConfig.getPlayerFolder(), playerName + ".yml");
+        playerData.save(playerFile);
+        return playerFile;
     }
 
     public int getLevel() {
@@ -45,6 +61,11 @@ public class PlayerData {
         this.learn = learn;
     }
 
+    protected boolean canEqual(Object other) {
+        return other instanceof PlayerData;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (o == this) {
             return true;
@@ -64,13 +85,10 @@ public class PlayerData {
         }
         List<String> this$learn = this.getLearn();
         List<String> other$learn = other.getLearn();
-        return this$learn == null ? other$learn == null : ((Object)this$learn).equals(other$learn);
+        return Objects.equals(this$learn, other$learn);
     }
 
-    protected boolean canEqual(Object other) {
-        return other instanceof PlayerData;
-    }
-
+    @Override
     public int hashCode() {
         int PRIME = 59;
         int result = 1;
@@ -81,6 +99,7 @@ public class PlayerData {
         return result;
     }
 
+    @Override
     public String toString() {
         return "PlayerData(Level=" + this.getLevel() + ", Exp=" + this.getExp() + ", learn=" + this.getLearn() + ")";
     }

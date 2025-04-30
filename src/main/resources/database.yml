@@ -1,0 +1,8 @@
+mysql_host: localhost
+mysql_port: 3306
+mysql_user: root
+mysql_password: root
+mysql_database: database
+mysql_table_prefix: forge_
+mysql_draw_table: draw
+mysql_player_table: player

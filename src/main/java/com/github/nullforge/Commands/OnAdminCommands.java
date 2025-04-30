@@ -1,13 +1,17 @@
 package com.github.nullforge.Commands;
 
 import com.github.nullcore.Config.ConfigurationLoader;
+import com.github.nullforge.Config.DBConfig;
+import com.github.nullforge.Config.GlobalConfig;
 import com.github.nullforge.Config.Settings;
 import com.github.nullforge.Data.DrawData;
 import com.github.nullforge.Data.DrawManager;
 import com.github.nullforge.Data.PlayerData;
+import com.github.nullforge.Data.YamlManager;
 import com.github.nullforge.Forge;
 import com.github.nullforge.MessageLoader;
 import com.github.nullforge.NullForge;
+import com.github.nullforge.Utils.TransformUtils;
 import com.github.nullforge.Utils.ExpUtil;
 
 import java.util.*;
@@ -33,39 +37,22 @@ public class OnAdminCommands implements CommandExecutor {
                 return true;
             }
 
-            if (args.length == 0 || (!args[0].equals("list") && !args[0].equals("give") && !args[0].equals("level") && !args[0].equals("loaddraw") && !args[0].equals("reload") && !args[0].equals("testexp") && !args[0].equals("get") && !args[0].equals("random"))){
+            if (args.length == 0){
                 sendUsage(sender);
                 return true;
             }
 
             switch (args[0].toLowerCase()) {
-                case "list":
-                    handleList(sender);
-                    break;
-                case "give":
-                    handleGive(sender, args);
-                    break;
-                case "level":
-                    handleLevel(sender, args);
-                    break;
-                case "testexp":
-                    handleTestExp(sender);
-                    break;
-                case "loaddraw":
-                    handleLoadDraw(sender);
-                    break;
-                case "reload":
-                    handleReload(sender);
-                    break;
-                case "get":
-                    handleForgeGetQuality(sender, args);
-                    break;
-                case "random":
-                    handleRandomForge(sender, args);
-                    break;
-                default:
-                    sendUsage(sender);
-                    break;
+                case "list": handleList(sender); break;
+                case "give": handleGive(sender, args); break;
+                case "level": handleLevel(sender, args); break;
+                case "testexp": handleTestExp(sender); break;
+                case "loaddraw": handleLoadDraw(sender); break;
+                case "reload": handleReload(sender); break;
+                case "get": handleForgeGetQuality(sender, args); break;
+                case "random": handleRandomForge(sender, args); break;
+                case "transform": handleTransform(sender); break;
+                default: sendUsage(sender); break;
             }
         }
         return true;
@@ -84,6 +71,7 @@ public class OnAdminCommands implements CommandExecutor {
         sender.sendMessage("§7 - §freload §7§o#§A§o重新载入配置");
         sender.sendMessage("§7 - §fget §7§o#§A§o获取指定品质的锻造装备§f> §o(无需材料)(最大浮动)");
         sender.sendMessage("§7 - §frandom §7§o#§A§o获取随机品质的锻造装备§f> §o(无需材料)(随机浮动)");
+        sender.sendMessage("§7 - §ftransform §7§o#§A§oMysql配置转Yaml配置§f> §o(无需材料)(随机浮动)");
     }
 
     private void handleList(CommandSender sender) {
@@ -91,6 +79,28 @@ public class OnAdminCommands implements CommandExecutor {
         for (String name: DrawManager.getDrawNames()) {
             sender.sendMessage("§c§l图纸名§f: " + name);
         }
+    }
+
+    private void handleTransform(CommandSender sender) {
+        Date first = new Date();
+        GlobalConfig.isTransform = true;
+        sender.sendMessage("§a正在转换图纸数据，请稍等...");
+        Map<String, Integer> drawStat = TransformUtils.transformDraw();
+        String drawMsg = "总共转换 " + drawStat.get("size") + " 条数据 | ";
+        drawMsg += "§a成功转换 " + drawStat.get("succeed") + " 条数据 | ";
+        drawMsg += "§c失败 " + drawStat.get("failed") + " 条数据";
+        Bukkit.getConsoleSender().sendMessage(drawMsg);
+
+        sender.sendMessage("§a正在转换玩家数据，请稍等...");
+        Map<String, Integer> playerStat = TransformUtils.transformPlayer();
+        String playerMsg = "总共转换 " + playerStat.get("size") + " 条数据 | ";
+        playerMsg += "§a成功转换 " + playerStat.get("succeed") + " 条数据 | ";
+        playerMsg += "§c失败 " + playerStat.get("failed") + " 条数据";
+        Bukkit.getConsoleSender().sendMessage(playerMsg);
+
+        long diff = new Date().getTime() - first.getTime();
+
+        sender.sendMessage("§a转换完成, 耗时: " + diff + " 毫秒");
     }
 
     private void handleGive(CommandSender sender, String[] args) {
@@ -157,15 +167,15 @@ public class OnAdminCommands implements CommandExecutor {
 
     private void handleLoadDraw(CommandSender sender) {
         DrawManager.reset();
-        Forge.dataManger.getDrawData();
+        Forge.dataManger.loadDrawData();
         sender.sendMessage("§c[系统]§a载入图纸信息成功!");
     }
 
     private void handleReload(CommandSender sender) {
         ConfigurationLoader.loadYamlConfiguration(NullForge.INSTANCE, Settings.class, true);
         MessageLoader.reloadMessages();
-        DrawManager.reset();
-        Forge.dataManger.getDrawData();
+        DBConfig.loadConfig();
+        Forge.dataManger.reload();
         sender.sendMessage("§c[系统]§a载入配置文件成功!");
     }
     private void handleRandomForge(CommandSender sender, String[] args) {

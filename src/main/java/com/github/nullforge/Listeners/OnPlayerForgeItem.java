@@ -7,12 +7,13 @@ import com.github.nullforge.Forge;
 import com.github.nullforge.MessageLoader;
 import com.github.nullforge.Utils.ExpUtil;
 import java.text.DecimalFormat;
+
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 
 public class OnPlayerForgeItem implements Listener {
-
     @EventHandler
     public void forgeItem(PlayerForgeItemEvent e) {
         Player p = e.getPlayer();
@@ -55,6 +56,13 @@ public class OnPlayerForgeItem implements Listener {
         } else {
             pd.setExp(newExp);
         }
+        // 保存玩家数据
+        try {
+            pd.savePlayer();
+        } catch (Exception ex) {
+            Bukkit.getConsoleSender().sendMessage("§c玩家数据保存是失败！");
+        }
+
 
         // 构建经验获得消息
         messageBuilder.append("\n").append(MessageLoader.getMessage("forge-exp-gain")

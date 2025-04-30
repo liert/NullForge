@@ -5,8 +5,8 @@ import com.github.nullforge.Commands.OnAdminCommands;
 import com.github.nullforge.Commands.OnCompose;
 import com.github.nullforge.Commands.OnForge;
 import com.github.nullcore.Config.ConfigurationLoader;
+import com.github.nullforge.Config.DBConfig;
 import com.github.nullforge.Config.Settings;
-import com.github.nullforge.Data.DataManagerImpl;
 import com.github.nullforge.Data.YamlManager;
 import com.github.nullforge.GUI.BaoshiGUI;
 import com.github.nullforge.Listeners.OnPlayerBreakBlock;
@@ -26,7 +26,7 @@ import org.bukkit.plugin.RegisteredServiceProvider;
 
 public class Forge {
     public static Forge INSTANCE;
-    public static DataManagerImpl dataManger;
+    public static YamlManager dataManger;
     public static Economy vault;
     public static Random rd;
     private static MythicMobs mythicMobs;
@@ -42,6 +42,7 @@ public class Forge {
 
     public void start() {
         MessageLoader.initialize(NullForge.INSTANCE);
+        DBConfig.loadConfig();
         EnableListener();
         mythicMobs = MythicMobs.inst();
         itemManager = new MMItemManager();
@@ -49,7 +50,7 @@ public class Forge {
         ConfigurationLoader.loadYamlConfiguration(NullForge.INSTANCE, Settings.class, true);
         this.initFolder();
         dataManger = new YamlManager();
-        dataManger.getDrawData();
+        dataManger.loadDrawData();
         if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
             new NameHolder(NullForge.INSTANCE, "forge").hook();
         }

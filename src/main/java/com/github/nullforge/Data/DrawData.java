@@ -1,7 +1,9 @@
 package com.github.nullforge.Data;
 
+import com.github.nullforge.Config.GlobalConfig;
 import com.github.nullforge.Config.Settings;
 import com.github.nullforge.MessageLoader;
+import com.github.nullforge.NullForge;
 import com.github.nullforge.Utils.ItemMaker;
 import com.github.nullforge.Utils.ItemString;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -11,12 +13,14 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.regex.Pattern;
 
 public class DrawData {
-    private final File file;
+    private File file;
     private final String displayName;
     private String gem;
     private List<String> formula;
@@ -26,6 +30,19 @@ public class DrawData {
     private List<String> detail;
     private List<String> attrib;
     private List<String> customCommands; // 新增字段
+
+    public DrawData(String displayName, String gem, List<String> formula, String result, int needGemLevel, int needPlayerLevel, List<String> detail, List<String> attrib) {
+        this.displayName = displayName;
+        this.gem = gem;
+        this.formula = formula;
+        this.result = result;
+        this.needGemLevel = needGemLevel;
+        this.needPlayerLevel = needPlayerLevel;
+        this.detail = detail;
+        this.attrib = attrib;
+        this.customCommands = new ArrayList<>();
+        DrawManager.addDraw(this);
+    }
 
     private DrawData(File file) {
         YamlConfiguration drawConfig = YamlConfiguration.loadConfiguration(file);
@@ -44,6 +61,10 @@ public class DrawData {
 
     public static void CreateDrawData(File file) {
         new DrawData(file);
+    }
+
+    public void setFile(File file) {
+        this.file = file;
     }
 
     public File getFile() {
@@ -106,6 +127,27 @@ public class DrawData {
         return item;
     }
 
+    public File saveDraw() throws IOException {
+        YamlConfiguration draw = new YamlConfiguration();
+        draw.set("name", this.displayName);
+        draw.set("gem", this.gem);
+        draw.set("gemlevel", this.needGemLevel);
+        draw.set("playerlevel", this.needPlayerLevel);
+        draw.set("result", this.result);
+        draw.set("formula", this.formula);
+        draw.set("detail", this.detail);
+        draw.set("attrib", this.attrib);
+        draw.set("customCommands", this.customCommands);
+        File drawFolder = GlobalConfig.getDrawFolder();
+        Pattern pattern = Pattern.compile("§[0-9a-fk-or]");
+        String name = pattern.matcher(this.displayName).replaceAll("");
+        if (file == null || !file.exists()) {
+            file = new File(drawFolder, name + ".yml");
+        }
+        draw.save(file);
+        return file;
+    }
+
     public int getNeedGemLevel() {
         return this.needGemLevel;
     }
@@ -144,6 +186,10 @@ public class DrawData {
 
     public void setCustomCommands(List<String> customCommands) { // 新增方法
         this.customCommands = customCommands;
+    }
+
+    protected boolean canEqual(Object other) {
+        return other instanceof DrawData;
     }
 
     @Override
@@ -188,10 +234,6 @@ public class DrawData {
         List<String> this_customCommands = this.getCustomCommands(); // 比较自定义命令
         List<String> other_customCommands = other.getCustomCommands();
         return Objects.equals(this_customCommands, other_customCommands);
-    }
-
-    protected boolean canEqual(Object other) {
-        return other instanceof DrawData;
     }
 
     @Override
