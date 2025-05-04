@@ -2,7 +2,7 @@ package com.github.nullforge.Data;
 
 import com.github.nullforge.Config.GlobalConfig;
 import com.github.nullforge.NullForge;
-import com.github.nullforge.Utils.ItemString;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.Date;
@@ -10,7 +10,6 @@ import java.util.List;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
 
 public class YamlManager {
     public void loadPlayerData(Player p) {
@@ -48,9 +47,9 @@ public class YamlManager {
     }
 
     public void reloadPlayerData() {
+        PlayerData.pMap.clear();
         for (Player player : Bukkit.getOnlinePlayers()) {
             savePlayerData(player);
-            PlayerData.pMap.clear();
             loadPlayerData(player);
         }
     }
@@ -110,7 +109,6 @@ public class YamlManager {
     }
 
     public void reloadDrawData() {
-        saveDrawData();
         DrawManager.reset();
         loadDrawData();
     }
