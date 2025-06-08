@@ -14,6 +14,7 @@ import com.github.nullforge.NullForge;
 import com.github.nullforge.Utils.TransformUtils;
 import com.github.nullforge.Utils.ExpUtil;
 
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -357,10 +358,9 @@ public class OnAdminCommands implements CommandExecutor {
         adjustedAttrib.add(qualityText); // 添加品质描述
         adjustedAttrib.add(Settings.I.Attrib_Perce_Text + strengthBar); // 添加强度条
         adjustedAttrib.add(Settings.I.ForgeOwner.replace("<player>", player.getName())); // 添加锻造者信息
-        java.text.DateFormat df = java.text.DateFormat.getDateInstance(2, java.util.Locale.CHINA);
-        java.text.DateFormat df2 = java.text.DateFormat.getTimeInstance(2, java.util.Locale.CHINA);
-        String date = df.format(new Date()) + " " + df2.format(new Date());
-        adjustedAttrib.add(Settings.I.ForgeDate.replace("<date>", date)); // 添加锻造日期
+        SimpleDateFormat sdf = new SimpleDateFormat(Settings.I.ForgeDateFormat);
+        String date = sdf.format(System.currentTimeMillis());
+        adjustedAttrib.add(Settings.I.ForgeDate.replace("<format>", date)); // 添加锻造日期
 
         // 更新物品描述并返回
         resultMeta.setLore(adjustedAttrib); // 更新物品的描述

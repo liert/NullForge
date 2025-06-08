@@ -111,9 +111,8 @@ Max_Player_Forge_Level: 10
 ForgeOwner: "§7锻造者§6[§a§l<player>§6]"
 
 #锻造日期信息
-ForgeDate: "§7锻造日期§6[§a§l<date>§6]"
-#ForgeDate: "§7锻造日期§6[§a§l%format%§6]"
-#DateFormat: "yyyy-MM-dd HH:mm:ss"
+ForgeDate: "§7锻造日期§6[§a§l<format>§6]"
+ForgeDateFormat: "yyyy-MM-dd HH:mm:ss"
 
 #玩家每级经验所需的等级公式 公式为(((level - <1.0>)^ <3>) * (level / <10>) + <70.0>) / <5.0> + ((level -<1.0>) * <400.0> + <96.0>) = 当前升级所需的经验 ,level 为当前等级
 #所有尖括号内的数字需要按顺序设置在下面.

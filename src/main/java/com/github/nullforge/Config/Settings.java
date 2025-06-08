@@ -25,6 +25,7 @@ public class Settings {
     public String Exp_Text;
     public String ForgeOwner;
     public String ForgeDate;
+    public String ForgeDateFormat;
     public String Attrib_Up_Item_Lore;
     public int Draw_Chance_Up_Count;
 
