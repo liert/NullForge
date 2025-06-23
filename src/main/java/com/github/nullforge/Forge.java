@@ -52,7 +52,7 @@ public class Forge {
         dataManger = new YamlManager();
         dataManger.loadDrawData();
         if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
-            new NameHolder(NullForge.INSTANCE, "forge").hook();
+            new NameHolder(NullForge.INSTANCE).register();
         }
         // 再次打印一条确认信息
         Bukkit.getConsoleSender().sendMessage("§8| §a插件加载成功!");

@@ -2,27 +2,53 @@ package com.github.nullforge.PlaceHolder;
 
 import com.github.nullforge.Data.PlayerData;
 import com.github.nullforge.Utils.ExpUtil;
-import me.clip.placeholderapi.external.EZPlaceholderHook;
+import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
+import org.jetbrains.annotations.NotNull;
 
-public class NameHolder extends EZPlaceholderHook {
-    public NameHolder(Plugin plugin, String identifier) {
-        super(plugin, identifier);
+public class NameHolder extends PlaceholderExpansion {
+    private final Plugin plugin; //
+
+    public NameHolder(Plugin plugin) {
+        this.plugin = plugin;
     }
 
-    public String onPlaceholderRequest(Player p, String arg1) {
-        if (!PlayerData.pMap.containsKey(p.getName())) {
+    @NotNull
+    @Override
+    public String getIdentifier() {
+        return "forge";
+    }
+
+    @NotNull
+    @Override
+    public String getAuthor() {
+        return "liert";
+    }
+
+    @NotNull
+    @Override
+    public String getVersion() {
+        return plugin.getDescription().getVersion();
+    }
+
+    @Override
+    public boolean persist() {
+        return true;
+    }
+
+    public String onPlaceholderRequest(Player player, @NotNull String params) {
+        if (!PlayerData.pMap.containsKey(player.getName())) {
             return "无";
         }
-        switch (arg1) {
+        switch (params) {
             case "get_level":
-                return String.valueOf(PlayerData.pMap.get(p.getName()).getLevel());
+                return String.valueOf(PlayerData.pMap.get(player.getName()).getLevel());
             case "get_exp":
-                int exp = (int) PlayerData.pMap.get(p.getName()).getExp();
+                int exp = (int) PlayerData.pMap.get(player.getName()).getExp();
                 return String.valueOf(exp);
             case "get_maxexp":
-                int needExp = (int) ExpUtil.getNeedExp(p);
+                int needExp = (int) ExpUtil.getNeedExp(player);
                 return String.valueOf(needExp);
         }
         return null;
