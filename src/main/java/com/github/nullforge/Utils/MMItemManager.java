@@ -1,7 +1,7 @@
 package com.github.nullforge.Utils;
 
 import com.github.nullforge.Config.GlobalConfig;
-import com.github.nullforge.Forge;
+import com.github.nullforge.NullForge;
 import io.lumine.xikage.mythicmobs.adapters.bukkit.BukkitAdapter;
 import io.lumine.xikage.mythicmobs.items.ItemManager;
 import io.lumine.xikage.mythicmobs.items.MythicItem;
@@ -14,7 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.bukkit.inventory.ItemStack;
 
 public class MMItemManager {
-    private final ItemManager itemManager = Forge.getMythicMobs().getItemManager();
+    private final ItemManager itemManager = NullForge.getMythicMobs().getItemManager();
     private final Map<ItemStack, String> items = new ConcurrentHashMap<>();
 
     public ItemStack getItemStack(String name) {

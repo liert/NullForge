@@ -4,11 +4,9 @@ import com.comphenix.protocol.utility.StreamSerializer;
 import com.github.nullforge.Config.DBConfig;
 import com.github.nullforge.Data.DrawData;
 import com.github.nullforge.Data.PlayerData;
-import com.github.nullforge.Forge;
 import com.github.nullforge.NullForge;
 import com.github.nullforge.db.DBHelper;
 import org.bukkit.Bukkit;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
@@ -108,7 +106,7 @@ public class TransformUtils {
     public static String getItemNameAndAmount(String serialized) {
         try {
             ItemStack item = StreamSerializer.getDefault().deserializeItemStack(serialized);
-            String itemName = Forge.getMMItemManager().getItemConfigName(item.clone());
+            String itemName = NullForge.getMMItemManager().getItemConfigName(item.clone());
             int amount = item.getAmount();
             return itemName + "x" + amount;
         }

@@ -3,7 +3,6 @@ package com.github.nullforge.Listeners;
 import com.github.nullforge.Config.Settings;
 import com.github.nullforge.Data.PlayerData;
 import com.github.nullforge.Event.PlayerForgeItemEvent;
-import com.github.nullforge.Forge;
 import com.github.nullforge.MessageLoader;
 import com.github.nullforge.Utils.ExpUtil;
 import java.text.DecimalFormat;

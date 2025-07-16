@@ -6,14 +6,12 @@ import com.github.nullforge.Data.DrawManager;
 import com.github.nullforge.Data.PlayerData;
 import com.github.nullforge.Data.TempItemStack;
 import com.github.nullforge.Event.PlayerForgeItemEvent;
-import com.github.nullforge.Forge;
+import com.github.nullforge.NullForge;
 import com.github.nullforge.GUI.ForgeGUI;
 import com.github.nullforge.GUI.SwitchDrawGUI;
 import com.github.nullforge.MessageLoader;
-import com.github.nullforge.NullForge;
 import com.github.nullforge.Utils.GemUtil;
 import com.github.nullforge.Utils.RandomUtil;
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -261,7 +259,7 @@ public class OnPlayerClickInv implements Listener {
                             if (inventory.getItem(12) == null && inventory.getItem(14) == null) {
                                 int gemLevel = GemUtil.getGemLevel(gem1);
                                 for (int i = gem1.getAmount(); i > 0; --i) {
-                                    if (Forge.rd.nextInt(1000) <= Settings.I.Gem_Level_Up_Chance) {
+                                    if (NullForge.rd.nextInt(1000) <= Settings.I.Gem_Level_Up_Chance) {
                                         ++success;
                                         over = GemUtil.changeGemLevel(gem1, gemLevel + 1);
                                     } else {
@@ -414,7 +412,7 @@ public class OnPlayerClickInv implements Listener {
                 String[] raw = attributeRange.split(" => ");
                 int min = Integer.parseInt(raw[0]);
                 int max = Integer.parseInt(raw[1]);
-                int r = Forge.rd.nextInt(max - min);
+                int r = NullForge.rd.nextInt(max - min);
                 double add = (double) r + (double) (max - min) * ((double) addChance / 100.0);
                 r = add + add * ((double) PlayerData.pMap.get(p.getName()).getLevel() / 100.0) > (double) (max - min) ? max - min : (int) (add + add * ((double) PlayerData.pMap.get(p.getName()).getLevel() / 100.0));
                 float pref = (float) r / (float) (max - min);
@@ -525,9 +523,9 @@ public class OnPlayerClickInv implements Listener {
                 // 计算每次锻造的经验
                 int gemLevel = dd.getNeedGemLevel();
                 int baseExp = Settings.I.Forge_Exp.get(gemLevel);
-                int floatExp = Forge.rd.nextInt(Settings.I.Forge_Exp_Float);
+                int floatExp = NullForge.rd.nextInt(Settings.I.Forge_Exp_Float);
                 double expFloat = (double)baseExp * ((double)floatExp / 100.0);
-                double exp = Forge.rd.nextBoolean() ? (double)baseExp + expFloat : (double)baseExp - expFloat;
+                double exp = NullForge.rd.nextBoolean() ? (double)baseExp + expFloat : (double)baseExp - expFloat;
                 totalExp += exp;
             }
 

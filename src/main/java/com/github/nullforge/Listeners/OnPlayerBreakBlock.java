@@ -1,7 +1,7 @@
 package com.github.nullforge.Listeners;
 
 import com.github.nullforge.Config.Settings;
-import com.github.nullforge.Forge;
+import com.github.nullforge.NullForge;
 import com.github.nullforge.MessageLoader;
 import com.github.nullforge.Utils.ItemMaker;
 import com.github.nullforge.Utils.RandomUtil;
@@ -37,7 +37,7 @@ public class OnPlayerBreakBlock implements Listener {
             return;
         }
         List<Integer> list = Settings.I.Ore_Chance.get(id);
-        if (Forge.rd.nextInt(1000) <= list.get(1)) {
+        if (NullForge.rd.nextInt(1000) <= list.get(1)) {
             ItemStack item = new ItemStack(Material.getMaterial((int)list.get(0)));
             if (!Settings.I.Gem_Lore.containsKey(item.getTypeId())) {
                 return;

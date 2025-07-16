@@ -1,6 +1,6 @@
 package com.github.nullforge.Utils;
 
-import com.github.nullforge.Forge;
+import com.github.nullforge.NullForge;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
@@ -16,6 +16,6 @@ public class ItemString {
         String[] strings = s.split("x");
         String name = strings[0];
         int amount = Integer.parseInt(strings[1]);
-        return Forge.getMMItemManager().getItemStack(name, amount);
+        return NullForge.getMMItemManager().getItemStack(name, amount);
     }
 }

@@ -1,6 +1,6 @@
 package com.github.nullforge.Commands;
 
-import com.github.nullcore.Config.ConfigurationLoader;
+import com.github.nullforge.Config.ConfigurationLoader;
 import com.github.nullforge.Config.DBConfig;
 import com.github.nullforge.Config.GlobalConfig;
 import com.github.nullforge.Config.Settings;
@@ -8,7 +8,7 @@ import com.github.nullforge.Data.DrawData;
 import com.github.nullforge.Data.DrawManager;
 import com.github.nullforge.Data.PlayerData;
 import com.github.nullforge.Data.YamlManager;
-import com.github.nullforge.Forge;
+import com.github.nullforge.NullForge;
 import com.github.nullforge.MessageLoader;
 import com.github.nullforge.NullForge;
 import com.github.nullforge.Utils.TransformUtils;
@@ -168,7 +168,7 @@ public class OnAdminCommands implements CommandExecutor {
 
     private void handleLoadDraw(CommandSender sender) {
         DrawManager.reset();
-        Forge.dataManger.loadDrawData();
+        NullForge.dataManger.loadDrawData();
         sender.sendMessage("§c[系统]§a载入图纸信息成功!");
     }
 
@@ -176,7 +176,7 @@ public class OnAdminCommands implements CommandExecutor {
         ConfigurationLoader.loadYamlConfiguration(NullForge.INSTANCE, Settings.class, true);
         MessageLoader.reloadMessages();
         DBConfig.loadConfig();
-        Forge.dataManger.reload();
+        NullForge.dataManger.reload();
         sender.sendMessage("§c[系统]§a载入配置文件成功!");
     }
     private void handleRandomForge(CommandSender sender, String[] args) {
