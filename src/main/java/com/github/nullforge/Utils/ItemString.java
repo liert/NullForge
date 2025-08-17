@@ -16,6 +16,8 @@ public class ItemString {
         String[] strings = s.split("x");
         String name = strings[0];
         int amount = Integer.parseInt(strings[1]);
-        return NullForge.getMMItemManager().getItemStack(name, amount);
+        ItemStack itemStack = NullForge.getMMItemManager().getItemStack(name, 1);
+        itemStack.setAmount(amount);
+        return itemStack;
     }
 }

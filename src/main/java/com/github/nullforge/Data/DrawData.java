@@ -3,7 +3,6 @@ package com.github.nullforge.Data;
 import com.github.nullforge.Config.GlobalConfig;
 import com.github.nullforge.Config.Settings;
 import com.github.nullforge.MessageLoader;
-import com.github.nullforge.NullForge;
 import com.github.nullforge.Utils.ItemMaker;
 import com.github.nullforge.Utils.ItemString;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -90,8 +89,20 @@ public class DrawData {
     public List<ItemStack> getFormula() {
         ArrayList<ItemStack> itemStacks = new ArrayList<>();
         for (String s : this.formula) {
-            itemStacks.add(ItemString.getItem(s));
+            ItemStack itemStack = ItemString.getItem(s);
+            int count = itemStack.getAmount();
+            while (count > 64) {
+                ItemStack copy = itemStack.clone();
+                copy.setAmount(64);
+                itemStacks.add(copy);
+                count -= 64;
+            }
+            if (count > 0) {
+                itemStack.setAmount(count);
+                itemStacks.add(itemStack);
+            }
         }
+
         return itemStacks;
     }
 
