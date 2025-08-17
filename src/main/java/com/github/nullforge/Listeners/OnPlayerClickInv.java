@@ -89,7 +89,6 @@ public class OnPlayerClickInv implements Listener {
                 p.openInventory(ForgeGUI.getGUI(dd.getDrawItem()));
             } else if (e.isRightClick()) {
                 // 右键点击：预览图纸所需材料
-                // 右键点击：预览图纸所需材料
                 Inventory previewInv = Bukkit.createInventory(null, 54, "§c§l图纸材料预览：" + dd.getDisplayName());
                 List<ItemStack> materials = dd.getFormula();
                 for (int i = 0; i < materials.size(); i++) {
@@ -366,7 +365,7 @@ public class OnPlayerClickInv implements Listener {
             TempItemStack tempItemStack = TempItemStack.getTempItemStack(p);
             Inventory inv = e.getInventory();
             DrawData dd = drawPlayerMap.get(p.getName());
-            List<ItemStack> formulaList = dd.getFormula();
+            List<ItemStack> formulas = dd.getFormula();
             // 获取玩家放入的材料
             for (int j = 0; j < inv.getSize(); ++j) {
                 if (inv.getItem(j) == null) continue;
@@ -381,8 +380,8 @@ public class OnPlayerClickInv implements Listener {
             }
 
             // 放入的材料不足以锻造一个物品，返回材料和宝石
-            formulaList.add(dd.getGem());
-            int finalCount = getFinalCount(tempItemStack, formulaList);
+            formulas.add(dd.getGem());
+            int finalCount = getFinalCount(tempItemStack, formulas);
             if (finalCount <= 0) {
                 tempItemStack.toPlayerInv();
                 p.sendMessage(MessageLoader.getMessage("forge-null"));
@@ -553,11 +552,26 @@ public class OnPlayerClickInv implements Listener {
 
     // 获取最终锻造数量，并更改total中的物品数量
     private int getFinalCount(TempItemStack tempItemStack, List<ItemStack> flist) {
-        if (tempItemStack.getSize() < 0 || flist == null) {
+        if (tempItemStack.getSize() < 0 || flist == null || flist.isEmpty()) {
             return 0; // 如果 total 或 flist 为 null，直接返回 0
         }
 
+        Map<ItemStack, Integer> formulas = new HashMap<>();
+        for (ItemStack itemStack: flist) {
+            ItemStack item = itemStack.clone();
+            item.setAmount(1);
+            formulas.compute(item, (k, v) -> v == null ? itemStack.getAmount() : v + itemStack.getAmount());
+        }
+
         List<Integer> counts = new ArrayList<>();
+        for (Map.Entry<ItemStack, Integer> entry : formulas.entrySet()) {
+            ItemStack itemStack = entry.getKey();
+            Integer count = entry.getValue();
+            if (itemStack == null || count == null) {
+                continue; // 如果某个材料为 null，跳过
+            }
+            counts.add(tempItemStack.getItemStackAmount(itemStack) / count);
+        }
         for (ItemStack item : flist) {
             if (item == null) {
                 continue; // 如果某个材料为 null，跳过

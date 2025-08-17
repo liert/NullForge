@@ -90,8 +90,20 @@ public class DrawData {
     public List<ItemStack> getFormula() {
         ArrayList<ItemStack> itemStacks = new ArrayList<>();
         for (String s : this.formula) {
-            itemStacks.add(ItemString.getItem(s));
+            ItemStack itemStack = ItemString.getItem(s);
+            int count = itemStack.getAmount();
+            while (count > 64) {
+                ItemStack copy = itemStack.clone();
+                copy.setAmount(64);
+                itemStacks.add(copy);
+                count -= 64;
+            }
+            if (count > 0) {
+                itemStack.setAmount(count);
+                itemStacks.add(itemStack);
+            }
         }
+
         return itemStacks;
     }
 
