@@ -103,6 +103,7 @@ public class YamlManager {
             try {
                 drawData.saveDraw();
             } catch (Exception e) {
+                e.printStackTrace();
                 Bukkit.getConsoleSender().sendMessage(drawData.getDisplayName() + " §c保存失败");
             }
         }

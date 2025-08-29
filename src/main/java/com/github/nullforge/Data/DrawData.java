@@ -5,17 +5,19 @@ import com.github.nullforge.Config.Settings;
 import com.github.nullforge.MessageLoader;
 import com.github.nullforge.Utils.ItemMaker;
 import com.github.nullforge.Utils.ItemString;
+import com.google.common.base.Charsets;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.configuration.file.YamlConfigurationOptions;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.yaml.snakeyaml.DumperOptions;
+import org.yaml.snakeyaml.Yaml;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.io.*;
+import java.nio.file.Files;
+import java.util.*;
 import java.util.regex.Pattern;
 
 public class DrawData {
@@ -139,23 +141,52 @@ public class DrawData {
     }
 
     public File saveDraw() throws IOException {
-        YamlConfiguration draw = new YamlConfiguration();
-        draw.set("name", this.displayName);
-        draw.set("gem", this.gem);
-        draw.set("gemlevel", this.needGemLevel);
-        draw.set("playerlevel", this.needPlayerLevel);
-        draw.set("result", this.result);
-        draw.set("formula", this.formula);
-        draw.set("detail", this.detail);
-        draw.set("attrib", this.attrib);
-        draw.set("customCommands", this.customCommands);
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("name", this.displayName);
+        data.put("gem", this.gem);
+        data.put("gemlevel", this.needGemLevel);
+        data.put("playerlevel", this.needPlayerLevel);
+        data.put("result", this.result);
+        data.put("formula", this.formula);
+        data.put("detail", this.detail);
+        data.put("attrib", this.attrib);
+        data.put("customCommands", this.customCommands);
+
+        DumperOptions options = new DumperOptions();
+        options.setIndent(4);
+        options.setIndicatorIndent(2);
+        options.setPrettyFlow(true);
+        options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
+
+        Yaml draw = new Yaml(options);
+
+        // YamlConfiguration draw = new YamlConfiguration();
+        // YamlConfigurationOptions options = draw.options();
+        // options.indent(2);
+        // draw.set("name", this.displayName);
+        // draw.set("gem", this.gem);
+        // draw.set("gemlevel", this.needGemLevel);
+        // draw.set("playerlevel", this.needPlayerLevel);
+        // draw.set("result", this.result);
+        // draw.set("formula", this.formula);
+        // draw.set("detail", this.detail);
+        // draw.set("attrib", this.attrib);
+        // draw.set("customCommands", this.customCommands);
         File drawFolder = GlobalConfig.getDrawFolder();
         Pattern pattern = Pattern.compile("§[0-9a-fk-or]");
         String name = pattern.matcher(this.displayName).replaceAll("");
         if (file == null || !file.exists()) {
             file = new File(drawFolder, name + ".yml");
         }
-        draw.save(file);
+        // draw.save(file);
+        // try (FileWriter writer = new FileWriter(file)) {
+        //     draw.dump(data, writer);
+        // }
+        String dataString = draw.dump(data);
+
+        try (Writer writer = new OutputStreamWriter(Files.newOutputStream(file.toPath()), Charsets.UTF_8)) {
+            writer.write(dataString);
+        }
         return file;
     }
 
