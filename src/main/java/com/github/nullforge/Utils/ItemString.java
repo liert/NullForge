@@ -1,6 +1,7 @@
 package com.github.nullforge.Utils;
 
 import com.github.nullforge.NullForge;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
@@ -16,7 +17,11 @@ public class ItemString {
         String[] strings = s.split("x");
         String name = strings[0];
         int amount = Integer.parseInt(strings[1]);
-        ItemStack itemStack = NullForge.getMMItemManager().getItemStack(name, 1);
+        ItemStack itemStack = NullForge.getItemManager().getItemStack(name);
+        if (itemStack == null) {
+            Bukkit.getLogger().warning("[NullForge] 获取物品失败：" + name);
+            return null;
+        }
         itemStack.setAmount(amount);
         return itemStack;
     }

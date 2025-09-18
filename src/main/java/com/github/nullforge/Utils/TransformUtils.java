@@ -84,7 +84,7 @@ public class TransformUtils {
             }
 
             try {
-                PlayerData playerData = new PlayerData(playerName, level, exp, learn);
+                PlayerData playerData = new PlayerData(playerName, level, exp, learn, new HashMap<>());
                 playerData.savePlayer();
                 Player player = Bukkit.getPlayer(playerName);
                 if (player != null && player.isOnline()) {
@@ -106,7 +106,10 @@ public class TransformUtils {
     public static String getItemNameAndAmount(String serialized) {
         try {
             ItemStack item = StreamSerializer.getDefault().deserializeItemStack(serialized);
-            String itemName = NullForge.getMMItemManager().getItemConfigName(item.clone());
+            String itemName = NullForge.getItemManager().getItemId(item.clone());
+            if (itemName == null) {
+                itemName = "未知物品";
+            }
             int amount = item.getAmount();
             return itemName + "x" + amount;
         }

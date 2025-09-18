@@ -7,10 +7,8 @@ import com.github.nullforge.Config.Settings;
 import com.github.nullforge.Data.DrawData;
 import com.github.nullforge.Data.DrawManager;
 import com.github.nullforge.Data.PlayerData;
-import com.github.nullforge.Data.YamlManager;
 import com.github.nullforge.NullForge;
 import com.github.nullforge.MessageLoader;
-import com.github.nullforge.NullForge;
 import com.github.nullforge.Utils.TransformUtils;
 import com.github.nullforge.Utils.ExpUtil;
 
@@ -72,7 +70,7 @@ public class OnAdminCommands implements CommandExecutor {
         sender.sendMessage("§7 - §freload §7§o#§A§o重新载入配置");
         sender.sendMessage("§7 - §fget §7§o#§A§o获取指定品质的锻造装备§f> §o(无需材料)(最大浮动)");
         sender.sendMessage("§7 - §frandom §7§o#§A§o获取随机品质的锻造装备§f> §o(无需材料)(随机浮动)");
-        sender.sendMessage("§7 - §ftransform §7§o#§A§oMysql配置转Yaml配置§f> §o(无需材料)(随机浮动)");
+        sender.sendMessage("§7 - §ftransform §7§o#§A§oMysql配置转Yaml配置§f>");
     }
 
     private void handleList(CommandSender sender) {
@@ -208,7 +206,7 @@ public class OnAdminCommands implements CommandExecutor {
 
         // 随机生成品质
         Map<String, Float> forgeChance = Settings.I.Forge_Chance;
-        String randomQuality = RandomUtil.probabString(forgeChance);
+        String randomQuality = RandomUtil.probabString(null, null, forgeChance);
 
         // 锻造装备
         ItemStack resultItem = forgeItemWithQuality(targetPlayer, drawData, randomQuality, false); // 设置 isCommand 为 false
@@ -316,7 +314,7 @@ public class OnAdminCommands implements CommandExecutor {
         // 获取最终装备并调整属性
         ItemStack itemStack = drawData.getResult();
         if (itemStack == null) {
-            player.sendMessage(MessageLoader.getMessage("mm-null-item"));
+            player.sendMessage(MessageLoader.getMessage("null-item"));
             return null; // 如果物品为空，返回 null
         }
 
@@ -356,7 +354,7 @@ public class OnAdminCommands implements CommandExecutor {
 
         // 添加品质信息和锻造者信息
         adjustedAttrib.add(qualityText); // 添加品质描述
-        adjustedAttrib.add(Settings.I.Attrib_Perce_Text + strengthBar); // 添加强度条
+        adjustedAttrib.add(Settings.I.Attrib_Rating_Text + strengthBar); // 添加强度条
         adjustedAttrib.add(Settings.I.ForgeOwner.replace("<player>", player.getName())); // 添加锻造者信息
         SimpleDateFormat sdf = new SimpleDateFormat(Settings.I.ForgeDateFormat);
         String date = sdf.format(System.currentTimeMillis());

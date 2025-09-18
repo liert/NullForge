@@ -64,9 +64,6 @@ Forge_Attrib:
     "level-8": "121 => 250"
     "level-9": "151 => 281"
 
-#锻造属性百分比显示前缀
-Attrib_Perce_Text: "§a强度:"
-
 #锻造属性的几率(左边对应上面配置的评价标记,右边为几率1000=100%)
 Forge_Chance:
     "level-1": 94 #粗糙
@@ -107,6 +104,9 @@ Forge_Exp_Float: 20
 #玩家的锻造最大等级
 Max_Player_Forge_Level: 10
 
+#锻造属性百分比显示前缀
+Attrib_Rating_Text: "§a强度:"
+
 #锻造者的信息
 ForgeOwner: "§7锻造者§6[§a§l<player>§6]"
 
@@ -121,5 +121,20 @@ Exp_Text: "1,3,10,70,5,1,400,96"
 #提升属性几率的物品lore
 Attrib_Up_Item_Lore: "§a纯度:§e§l<chance>"
 
+# 重铸石在游戏中展示的名字，用于检测
+ReforgeStoneFlag: "§5重铸石"
+# 检测幸运石Lore，幸运石物品自己在物品库写
+LuckyStoneFlag: "幸运石: +<percentage>%"
+
 # 一张图纸最多能使用多少强化石
 Draw_Chance_Up_Count: 20
+
+# 快速锻造功能
+Quick_Forge: true       # 是否启用
+Quick_Forge_Cooldown: 1 # 冷却时间(S)
+
+# 保底功能
+Small_Guarantee_Threshold: 10     # 小保底触发次数
+Large_Guarantee_Threshold: 80     # 大保底触发次数
+Small_Guaranteed_Quality: level-6 # 小保底保底品质
+Large_Guaranteed_Quality: level-9 # 大保底保底品质

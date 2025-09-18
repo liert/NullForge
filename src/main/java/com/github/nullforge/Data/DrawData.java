@@ -3,11 +3,11 @@ package com.github.nullforge.Data;
 import com.github.nullforge.Config.GlobalConfig;
 import com.github.nullforge.Config.Settings;
 import com.github.nullforge.MessageLoader;
+import com.github.nullforge.NullForge;
 import com.github.nullforge.Utils.ItemMaker;
 import com.github.nullforge.Utils.ItemString;
 import com.google.common.base.Charsets;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.configuration.file.YamlConfigurationOptions;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
@@ -30,6 +30,7 @@ public class DrawData {
     private int needPlayerLevel;
     private List<String> detail;
     private List<String> attrib;
+    private List<String> reforgeAttributes = new ArrayList<>();
     private List<String> customCommands; // 新增字段
 
     public DrawData(String displayName, String gem, List<String> formula, String result, int needGemLevel, int needPlayerLevel, List<String> detail, List<String> attrib) {
@@ -57,6 +58,9 @@ public class DrawData {
         this.detail = drawConfig.getStringList("detail");
         this.attrib = drawConfig.getStringList("attrib");
         this.customCommands = drawConfig.getStringList("customCommands"); // 读取自定义命令
+        if (drawConfig.contains("ReforgeAttributes")) {
+            this.reforgeAttributes = drawConfig.getStringList("ReforgeAttributes");
+        }
         DrawManager.addDraw(this);
     }
 
@@ -92,6 +96,9 @@ public class DrawData {
         ArrayList<ItemStack> itemStacks = new ArrayList<>();
         for (String s : this.formula) {
             ItemStack itemStack = ItemString.getItem(s);
+            if (itemStack == null) {
+                continue;
+            }
             int count = itemStack.getAmount();
             while (count > 64) {
                 ItemStack copy = itemStack.clone();
@@ -119,9 +126,12 @@ public class DrawData {
     public ItemStack getResult() {
         ItemStack itemStack = ItemString.getItem(this.result);
         if (itemStack == null) {
-            throw new NullPointerException(MessageLoader.getMessage("mm-null-item"));
+            throw new NullPointerException(MessageLoader.getMessage("null-item"));
         }
-        return itemStack;
+        // return itemStack;
+        Map<String, Object> nbt = new HashMap<>();
+        nbt.put("DrawName", this.getFileName());
+        return NullForge.getItemManager().addItemNBT(itemStack, nbt);
     }
 
     public void setResult(ItemStack item) {
@@ -150,6 +160,7 @@ public class DrawData {
         data.put("formula", this.formula);
         data.put("detail", this.detail);
         data.put("attrib", this.attrib);
+        data.put("ReforgeAttributes", this.reforgeAttributes);
         data.put("customCommands", this.customCommands);
 
         DumperOptions options = new DumperOptions();
@@ -159,29 +170,12 @@ public class DrawData {
         options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
 
         Yaml draw = new Yaml(options);
-
-        // YamlConfiguration draw = new YamlConfiguration();
-        // YamlConfigurationOptions options = draw.options();
-        // options.indent(2);
-        // draw.set("name", this.displayName);
-        // draw.set("gem", this.gem);
-        // draw.set("gemlevel", this.needGemLevel);
-        // draw.set("playerlevel", this.needPlayerLevel);
-        // draw.set("result", this.result);
-        // draw.set("formula", this.formula);
-        // draw.set("detail", this.detail);
-        // draw.set("attrib", this.attrib);
-        // draw.set("customCommands", this.customCommands);
         File drawFolder = GlobalConfig.getDrawFolder();
         Pattern pattern = Pattern.compile("§[0-9a-fk-or]");
         String name = pattern.matcher(this.displayName).replaceAll("");
         if (file == null || !file.exists()) {
             file = new File(drawFolder, name + ".yml");
         }
-        // draw.save(file);
-        // try (FileWriter writer = new FileWriter(file)) {
-        //     draw.dump(data, writer);
-        // }
         String dataString = draw.dump(data);
 
         try (Writer writer = new OutputStreamWriter(Files.newOutputStream(file.toPath()), Charsets.UTF_8)) {
@@ -204,6 +198,10 @@ public class DrawData {
 
     public List<String> getAttrib() {
         return this.attrib;
+    }
+
+    public List<String> getReforgeAttributes() {
+        return this.reforgeAttributes;
     }
 
     public List<String> getCustomCommands() { // 新增方法

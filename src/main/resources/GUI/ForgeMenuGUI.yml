@@ -1,0 +1,16 @@
+Title: "§7[§3锻造菜单§7]"
+Layout:
+  - "AAAAAAAAA"
+  - "A       A"
+  - "A F   R A"
+  - "A       A"
+  - "AAAAAAAAA"
+ItemMap:
+  F:
+    Flag: 锻造
+    Material: ANVIL
+    DisplayName: "§7[§3锻造§7]"
+  R:
+    Flag: 重铸
+    Material: NETHER_STAR
+    DisplayName: "§7[§3重铸§7]"

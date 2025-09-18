@@ -6,7 +6,10 @@ import com.github.nullforge.NullForge;
 import java.io.File;
 import java.io.IOException;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -21,7 +24,11 @@ public class YamlManager {
             int level = playerConfig.getInt("level");
             double exp = playerConfig.getDouble("exp");
             List<String> learn = playerConfig.getStringList("learn");
-            playerData = new PlayerData(p.getName(), level, exp, learn);
+            Map<String, Object> forgeRecord = new HashMap<>();
+            if (playerConfig.contains("ForgeRecord")) {
+                forgeRecord = playerConfig.getConfigurationSection("ForgeRecord").getValues(false);
+            }
+            playerData = new PlayerData(p.getName(), level, exp, learn, forgeRecord);
         } else {
             try {
                 playerData = new PlayerData(p.getName());

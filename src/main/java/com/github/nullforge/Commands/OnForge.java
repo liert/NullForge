@@ -1,7 +1,7 @@
 package com.github.nullforge.Commands;
 
 import com.github.nullforge.Data.PlayerData;
-import com.github.nullforge.GUI.SwitchDrawGUI;
+import com.github.nullforge.GUI.ForgeMenuGUI;
 import com.github.nullforge.MessageLoader;
 import com.github.nullforge.NullForge;
 import org.bukkit.command.Command;
@@ -22,7 +22,7 @@ public class OnForge implements CommandExecutor {
             p.sendMessage(MessageLoader.getMessage("draw-no-learn"));
             return true;
         }
-        p.openInventory(SwitchDrawGUI.getGUI(p, 0));
+        p.openInventory(ForgeMenuGUI.getInstance().initInventory());
         return true;
     }
 }

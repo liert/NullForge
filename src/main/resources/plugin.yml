@@ -1,7 +1,7 @@
 name: NullForge
 main: com.github.nullforge.NullForge
 version: '${project.version}'
-depend: [ProtocolLib, MythicMobs]
+depend: [ProtocolLib, NullBridge]
 softdepend: ["PlaceholderAPI"]
 commands:
   dz:

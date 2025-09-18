@@ -1,5 +1,10 @@
 package com.github.nullforge.Utils;
 
+import com.github.nullforge.Config.Settings;
+import com.github.nullforge.Data.DrawData;
+import com.github.nullforge.Data.PlayerData;
+import org.bukkit.entity.Player;
+
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Random;
@@ -22,7 +27,17 @@ public class RandomUtil {
         return null;
     }
 
-    public static String probabString(Map<String, Float> map) {
+    public static String probabString(Player player, DrawData drawData, Map<String, Float> map) {
+        if (player != null & drawData != null) {
+            PlayerData playerData = PlayerData.getPlayerData(player.getName());
+            int forgeCount = playerData.getForgeCount(drawData.getFileName());
+            if ((forgeCount % Settings.I.Large_Guarantee_Threshold) >= Settings.I.Large_Guarantee_Threshold - 1) {
+                return Settings.I.Large_Guaranteed_Quality;
+            }
+            if ((forgeCount % Settings.I.Small_Guarantee_Threshold) >= Settings.I.Small_Guarantee_Threshold - 1) {
+                return Settings.I.Small_Guaranteed_Quality;
+            }
+        }
         float total = 0.0f;
         TreeMap<Float, String> cumulativeMap = new TreeMap<>();
         for (Map.Entry<String, Float> entry : normalizeWeights(map).entrySet()) {
@@ -32,10 +47,15 @@ public class RandomUtil {
             }
         }
         float randomValue = ThreadLocalRandom.current().nextFloat() * total;
+        String quality = cumulativeMap.ceilingEntry(randomValue).getValue();
+        if (player != null & drawData != null && quality.equals(Settings.I.Large_Guaranteed_Quality)) {
+            PlayerData playerData = PlayerData.getPlayerData(player.getName());
+            playerData.resetForgeCount(drawData.getFileName());
+        }
         return cumulativeMap.ceilingEntry(randomValue).getValue();
     }
 
-    private static Map<String, Float> normalizeWeights(Map<String, Float> map) {
+    public static Map<String, Float> normalizeWeights(Map<String, Float> map) {
         Map<String, Float> normalizedWeights = new LinkedHashMap<>();
         float totalWeight = 0f;
         // 计算总权重

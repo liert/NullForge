@@ -18,7 +18,7 @@ public class Settings {
     public Map<String, String> Forge_Attrib;
     public Map<String, Float> Forge_Chance;
     public Map<String, String> Attrib_Level_Text;
-    public String Attrib_Perce_Text;
+    public String Attrib_Rating_Text;
     public Map<Integer, Integer> Forge_Exp;
     public int Forge_Exp_Float;
     public int Max_Player_Forge_Level;
@@ -28,6 +28,16 @@ public class Settings {
     public String ForgeDateFormat;
     public String Attrib_Up_Item_Lore;
     public int Draw_Chance_Up_Count;
+    public String ReforgeStoneFlag;
+    public String LuckyStoneFlag;
+
+    public boolean Quick_Forge;
+    public int Quick_Forge_Cooldown;
+
+    public int Small_Guarantee_Threshold;
+    public int Large_Guarantee_Threshold;
+    public String Small_Guaranteed_Quality;
+    public String Large_Guaranteed_Quality;
 
     public Settings() {
         I = this;

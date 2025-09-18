@@ -1,5 +1,8 @@
 package com.github.nullforge;
 
+import com.github.nullbridge.manager.InventoryEventManager;
+import com.github.nullbridge.manager.InventoryManager;
+import com.github.nullbridge.manager.ItemManager;
 import com.github.nullforge.Commands.GemComposeCommand;
 import com.github.nullforge.Commands.OnAdminCommands;
 import com.github.nullforge.Commands.OnCompose;
@@ -15,8 +18,6 @@ import com.github.nullforge.Listeners.OnPlayerForgeItem;
 import com.github.nullforge.Listeners.OnPlayerInteract;
 import com.github.nullforge.Listeners.OnPlayerJoin;
 import com.github.nullforge.PlaceHolder.NameHolder;
-import com.github.nullforge.Utils.MMItemManager;
-import io.lumine.xikage.mythicmobs.MythicMobs;
 import java.io.File;
 import java.util.Random;
 import net.milkbowl.vault.economy.Economy;
@@ -30,8 +31,7 @@ public class NullForge extends JavaPlugin {
     public static YamlManager dataManger;
     public static Economy vault;
     public static Random rd;
-    private static MythicMobs mythicMobs;
-    private static MMItemManager itemManager;
+    private static ItemManager itemManager;
 
     static {
         rd = new Random();
@@ -46,8 +46,8 @@ public class NullForge extends JavaPlugin {
         MessageLoader.initialize(NullForge.INSTANCE);
         DBConfig.loadConfig();
         EnableListener();
-        mythicMobs = MythicMobs.inst();
-        itemManager = new MMItemManager();
+        itemManager = new ItemManager();
+        InventoryManager.init(this);
         this.setupEconomy();
         ConfigurationLoader.loadYamlConfiguration(NullForge.INSTANCE, Settings.class, true);
         this.initFolder();
@@ -78,6 +78,7 @@ public class NullForge extends JavaPlugin {
 
 
     private void EnableListener() {
+        InventoryEventManager eventManager = new InventoryEventManager(this);
         NullForge.INSTANCE.getCommand("dz").setExecutor(new OnForge());
         NullForge.INSTANCE.getCommand("hc").setExecutor(new OnCompose());
         NullForge.INSTANCE.getCommand("fadmin").setExecutor(new OnAdminCommands());
@@ -109,13 +110,8 @@ public class NullForge extends JavaPlugin {
         }
     }
 
-    public static MMItemManager getMMItemManager() {
+    public static ItemManager getItemManager() {
         return itemManager;
     }
-
-    public static MythicMobs getMythicMobs() {
-        return mythicMobs;
-    }
-
 }
 

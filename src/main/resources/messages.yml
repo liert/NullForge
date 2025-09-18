@@ -26,7 +26,8 @@ forge-ing: "§7[§3锻造§7]§7正在锻造中....请稍后...."
 forge-null: "§7[§3锻造§7]§7锻造材料不匹配,系统已返回你所有放置的物品"
 forge-hoist: "§7[§3锻造§7]§7你使用了品质属性增加道具增加了品质几率§A§l%addchance%"
 forge-finish: "§7[§3锻造§7]§7恭喜你锻造成功.请取出你锻造出来的神器"
-forge-broadcast: "§7[§3锻造§7]§7玩家 §a%player% §7锻造出 %totel% §7件 %itemname% §7(%qualities%)"
+forge-broadcast: "§7[§3锻造§7]§7玩家 §a%player% §7锻造出 %quality% §7的 %itemname% §7(鼠标悬浮查看)"
+forge-broadcast-batch: "§7[§3锻造§7]§7玩家 §a%player% §7锻造出 %totel% §7件 %itemname% §7(鼠标悬浮查看)"
 #锻造等级
 forge-max-level: "§7[§3锻造§7]§7你的锻造等级已经达到了最大等级"
 forge-exp-gain: "§7[§3锻造§7]§7总共获得锻造经验§A%exp%§7点"
@@ -53,5 +54,12 @@ gui-compose-click: "§a§l点击合成!"
 #V1.2.1新增预览图纸一键获取锻造材料
 admin-get-materials-success: "§7[§3锻造§7]§7已成功获取全部锻造材料"
 forge-inventory-full: "§7[§3锻造§7]§7背包空间不足，无法获取材料"
-# MM库错误信息
-mm-null-item: "§7[§3锻造§7]§7锻造输出物品不存在，请检查MM配置！"
+# 物品库错误信息
+null-item: "§7[§3锻造§7]§7锻造材料/物品不存在，请检查物品库配置！"
+# 灵魂背包错误信息
+soul-bag-not-installed: "§7[§3锻造§7]§7一键锻造仅支持灵魂背包"
+soul-bag-not-enough-materials: "§7[§3锻造§7]§7灵魂背包内没有足够的锻造材料"
+# 玩家错误信息
+player-not-enough-space: "§7[§3锻造§7]§7玩家背包空间不足"
+# 快速锻造错误信息
+quick-forge-cooling: "§7[§3锻造§7]§7一键锻造冷却中..."

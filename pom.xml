@@ -107,5 +107,18 @@
             <version>2.11.6</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>com.github</groupId>
+            <artifactId>NullBridge</artifactId>
+            <version>1.0.0</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>qfeng.qfsoulbag</groupId>
+            <artifactId>QFSoulBag</artifactId>
+            <version>1.9.11.14</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/libs/QFSoulBag-1.9.11.14.jar</systemPath>
+        </dependency>
     </dependencies>
 </project>

@@ -1,0 +1,31 @@
+Title: "§7[§3重铸§7]"
+Layout:
+  - "AAAEEEAAA"
+  - "AIAEEEAOA"
+  - "AAAEEEAAA"
+  - "ANAEEEAYA"
+  - "AACAAAXAA"
+  - "AAAARAAAA"
+ItemMap:
+  I:
+    Flag: 输入
+  O:
+    Flag: 输出
+  E:
+    Flag: 词条输入
+  N:
+    Flag: 取消
+    Material: BARRIER
+    DisplayName: "§7[§3取消§7]"
+  Y:
+    Flag: 确认
+    Material: END_CRYSTAL
+    DisplayName: "§7[§3确认§7]"
+  R:
+    Flag: 重铸
+    Material: ANVIL
+    DisplayName: "§7[§3重铸§7]"
+  C:
+    Flag: 重铸石
+  X:
+    Flag: 幸运石

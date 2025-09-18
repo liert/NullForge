@@ -15,7 +15,7 @@ public class OnCompose implements CommandExecutor {
             return true;
         }
         Player p = (Player)sender;
-        p.openInventory(ComposeGUI.getGUI());
+        p.openInventory(ComposeGUI.getInstance().initInventory());
         return true;
     }
 }

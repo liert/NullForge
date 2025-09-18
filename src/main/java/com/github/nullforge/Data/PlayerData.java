@@ -2,6 +2,7 @@ package com.github.nullforge.Data;
 
 import com.github.nullforge.Config.GlobalConfig;
 import org.bukkit.configuration.file.YamlConfiguration;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -11,20 +12,25 @@ public class PlayerData {
     private String playerName;
     private int Level;
     private double Exp;
-    List<String> learn;
+    private List<String> learn = new ArrayList<>();
+    private Map<String, Object> ForgeRecord = new HashMap<>();
 
     public PlayerData(String playerName) {
         this.playerName = playerName;
         this.Level = 0;
         this.Exp = 0;
-        this.learn = new ArrayList<>();
     }
 
-    public PlayerData(String playerName, int level, double exp, List<String> learn) {
+    public PlayerData(String playerName, int level, double exp, List<String> learn, Map<String, Object> forgeRecord) {
         this.playerName = playerName;
         this.Level = level;
         this.Exp = exp;
         this.learn = learn;
+        this.ForgeRecord = forgeRecord;
+    }
+
+    public static PlayerData getPlayerData(String playerName) {
+        return pMap.get(playerName);
     }
 
     public File savePlayer() throws IOException {
@@ -32,6 +38,7 @@ public class PlayerData {
         playerData.set("level", this.Level);
         playerData.set("exp", this.Exp);
         playerData.set("learn", this.learn);
+        playerData.set("ForgeRecord", this.ForgeRecord);
         File playerFile = new File(GlobalConfig.getPlayerFolder(), playerName + ".yml");
         playerData.save(playerFile);
         return playerFile;
@@ -59,6 +66,18 @@ public class PlayerData {
 
     public void setLearn(List<String> learn) {
         this.learn = learn;
+    }
+
+    public int getForgeCount(String name) {
+        return (int) this.ForgeRecord.getOrDefault(name, 0);
+    }
+
+    public void addForgeCount(String name) {
+        this.ForgeRecord.put(name, (int) this.ForgeRecord.getOrDefault(name, 0) + 1);
+    }
+
+    public void resetForgeCount(String name) {
+        this.ForgeRecord.put(name, 0);
     }
 
     protected boolean canEqual(Object other) {
