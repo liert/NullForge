@@ -10,9 +10,6 @@ commands:
   hc:
     description: none.
     usage: /<command> ?
-  baoshi:
-    description: 客户定制功能
-    usage: /<command> ?
   fadmin:
     description: none.
     usage: /<command> ?

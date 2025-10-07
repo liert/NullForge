@@ -3,15 +3,12 @@ package com.github.nullforge;
 import com.github.nullbridge.manager.InventoryEventManager;
 import com.github.nullbridge.manager.InventoryManager;
 import com.github.nullbridge.manager.ItemManager;
-import com.github.nullforge.Commands.GemComposeCommand;
 import com.github.nullforge.Commands.OnAdminCommands;
 import com.github.nullforge.Commands.OnCompose;
 import com.github.nullforge.Commands.OnForge;
 import com.github.nullforge.Config.ConfigurationLoader;
-import com.github.nullforge.Config.DBConfig;
 import com.github.nullforge.Config.Settings;
 import com.github.nullforge.Data.YamlManager;
-import com.github.nullforge.GUI.BaoshiGUI;
 import com.github.nullforge.Listeners.OnPlayerBreakBlock;
 import com.github.nullforge.Listeners.OnPlayerClickInv;
 import com.github.nullforge.Listeners.OnPlayerForgeItem;
@@ -20,21 +17,26 @@ import com.github.nullforge.Listeners.OnPlayerJoin;
 import com.github.nullforge.PlaceHolder.NameHolder;
 import java.io.File;
 import java.util.Random;
+
+import com.github.nullforge.db.DBManager;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class NullForge extends JavaPlugin {
+    private static boolean debug = true;
     public static NullForge INSTANCE;
     public static YamlManager dataManger;
     public static Economy vault;
-    public static Random rd;
+    public static Random random;
     private static ItemManager itemManager;
+    private static InventoryManager inventoryManager;
 
     static {
-        rd = new Random();
+        random = new Random();
     }
 
     public NullForge() {
@@ -44,10 +46,12 @@ public class NullForge extends JavaPlugin {
     @Override
     public void onEnable() {
         MessageLoader.initialize(NullForge.INSTANCE);
-        DBConfig.loadConfig();
+
+        DBManager.initialize();
+
         EnableListener();
         itemManager = new ItemManager();
-        InventoryManager.init(this);
+        inventoryManager = new InventoryManager(this);
         this.setupEconomy();
         ConfigurationLoader.loadYamlConfiguration(NullForge.INSTANCE, Settings.class, true);
         this.initFolder();
@@ -76,19 +80,16 @@ public class NullForge extends JavaPlugin {
         }
     }
 
-
     private void EnableListener() {
         InventoryEventManager eventManager = new InventoryEventManager(this);
         NullForge.INSTANCE.getCommand("dz").setExecutor(new OnForge());
         NullForge.INSTANCE.getCommand("hc").setExecutor(new OnCompose());
         NullForge.INSTANCE.getCommand("fadmin").setExecutor(new OnAdminCommands());
-        NullForge.INSTANCE.getCommand("baoshi").setExecutor(new GemComposeCommand());
         Bukkit.getPluginManager().registerEvents(new OnPlayerBreakBlock(), NullForge.INSTANCE);
         Bukkit.getPluginManager().registerEvents(new OnPlayerClickInv(), NullForge.INSTANCE);
         Bukkit.getPluginManager().registerEvents(new OnPlayerForgeItem(), NullForge.INSTANCE);
         Bukkit.getPluginManager().registerEvents(new OnPlayerJoin(), NullForge.INSTANCE);
         Bukkit.getPluginManager().registerEvents(new OnPlayerInteract(), NullForge.INSTANCE);
-        Bukkit.getPluginManager().registerEvents(new BaoshiGUI(), NullForge.INSTANCE);
     }
 
     private void initFolder() {
@@ -112,6 +113,15 @@ public class NullForge extends JavaPlugin {
 
     public static ItemManager getItemManager() {
         return itemManager;
+    }
+
+    public static InventoryManager getInventoryManager() {
+        return inventoryManager;
+    }
+
+    public static void debug(String msg) {
+        if (!debug) return;
+        Bukkit.getLogger().info(ChatColor.YELLOW + msg);
     }
 }
 

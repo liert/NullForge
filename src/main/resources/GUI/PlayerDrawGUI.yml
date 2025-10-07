@@ -1,0 +1,21 @@
+Title: "§c§l请选择你需要锻造的图纸"
+Layout:
+  - "AAAAAAAAA"
+  - "A       A"
+  - "A       A"
+  - "A       A"
+  - "A       A"
+  - "BAAAAAAAN"
+ItemMap:
+  B:
+    Flag: 上一页
+    Material: STAINED_GLASS_PANE
+    Color: Red
+    DisplayName: "§c§l上一页"
+  N:
+    Flag: 下一页
+    Material: STAINED_GLASS_PANE
+    Color: Lime
+    DisplayName: "§a§l下一页"
+  " ":
+    Flag: 图纸槽

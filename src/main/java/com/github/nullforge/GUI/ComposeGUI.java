@@ -1,5 +1,6 @@
 package com.github.nullforge.GUI;
 
+import com.github.nullbridge.Inventory.InventoryContext;
 import com.github.nullbridge.Inventory.NullInventory;
 import com.github.nullbridge.annotate.RegisterInventory;
 import com.github.nullforge.Config.Settings;
@@ -39,6 +40,11 @@ public class ComposeGUI extends NullInventory {
     }
 
     @Override
+    public void initInventory(InventoryContext inventoryContext) {
+
+    }
+
+    @Override
     public void click(InventoryClickEvent e) {
         int slot = e.getRawSlot();
         if (slot < 0) {
@@ -75,7 +81,7 @@ public class ComposeGUI extends NullInventory {
                         if (inventory.getItem(12) == null && inventory.getItem(14) == null) {
                             int gemLevel = GemUtil.getGemLevel(gem1);
                             for (int i = gem1.getAmount(); i > 0; --i) {
-                                if (NullForge.rd.nextInt(1000) <= Settings.I.Gem_Level_Up_Chance) {
+                                if (NullForge.random.nextInt(1000) <= Settings.I.Gem_Level_Up_Chance) {
                                     ++success;
                                     over = GemUtil.changeGemLevel(gem1, gemLevel + 1);
                                 } else {

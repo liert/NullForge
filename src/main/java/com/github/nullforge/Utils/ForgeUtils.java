@@ -2,6 +2,7 @@ package com.github.nullforge.Utils;
 
 import com.github.nullforge.Config.Settings;
 import com.github.nullforge.Data.DrawData;
+import com.github.nullforge.Data.DrawManager;
 import com.github.nullforge.Data.PlayerData;
 import com.github.nullforge.NullForge;
 import org.bukkit.Bukkit;
@@ -17,9 +18,9 @@ import java.util.regex.Pattern;
 
 public class ForgeUtils {
     public static ItemStack generateForgedItem(Player player, DrawData drawData, String level, int addChance) {
-        String attributeRange = Settings.I.Forge_Attrib.get(level); // 属性波动范围（比如 "10 => 30"）
+        Settings.Level levelObj = Settings.I.Levels.get(level);
         int playerLevel = PlayerData.pMap.get(player.getName()).getLevel();
-        Map<String, Number> wave = calculateWave(attributeRange, addChance, playerLevel, NullForge.rd);
+        Map<String, Number> wave = calculateWave(levelObj.AttributeRange, addChance, playerLevel, NullForge.random);
 
         int rating = wave.get("rating").intValue();
 
@@ -27,12 +28,28 @@ public class ForgeUtils {
         ItemMeta forgeMeta = forgedItem.getItemMeta();
         List<String> lore = forgeMeta.hasLore() ? forgeMeta.getLore() : new ArrayList<>();
 
-        List<String> attributes = drawData.getAttrib();
         int percent = wave.get("percent").intValue();
-        for (String attribute : attributes) {
-            lore.add(applyReforge(attribute, percent));
+
+        List<String> drawLore = drawData.getLore();
+        for (String string : drawLore) {
+            // 生成主属性
+            if (string.equals("<Attributes>")) {
+                for (String attribute : drawData.getAttributes()) {
+                    lore.add(apply(attribute, percent));
+                }
+                continue;
+            }
+            // 生成随机属性
+            if (string.equals("<RandomAttributes>")) {
+                for (String attribute : RandomUtil.getRandomAttributes(level, drawData.getType(), drawData.getRandomAttributes())) {
+                    lore.add(apply(attribute, percent));
+                }
+                continue;
+            }
+            lore.add(string);
         }
-        lore.add(Settings.I.Attrib_Level_Text.get(level));
+
+        lore.add(levelObj.Lore);
         lore.add(Settings.I.Attrib_Rating_Text + getRatingText(rating));
         lore.add(Settings.I.ForgeOwner.replaceAll("<player>", player.getName()));
         SimpleDateFormat sdf = new SimpleDateFormat(Settings.I.ForgeDateFormat);
@@ -48,6 +65,13 @@ public class ForgeUtils {
             return false;
         }
         return NullForge.getItemManager().hasItemNBT(itemStack, "DrawName");
+    }
+
+    public static String getDrawName(ItemStack itemStack) {
+        if (!isForgedItem(itemStack)) {
+            return null;
+        }
+        return NullForge.getItemManager().getStringNBT(itemStack, "DrawName");
     }
 
     public static String getRatingText(int pre) {
@@ -79,7 +103,7 @@ public class ForgeUtils {
      * @param percent   增加百分比（例如 20 表示 +20%）
      * @return 修改后的属性字符串
      */
-    public static String applyReforge(String attribute, int percent) {
+    public static String apply(String attribute, int percent) {
         Pattern numberInParentheses = Pattern.compile("\\((\\d+)\\)");
         Matcher matcher = numberInParentheses.matcher(attribute);
 
@@ -105,10 +129,9 @@ public class ForgeUtils {
      * @param random         随机数生成器
      * @return 包含详细波动信息的 Map
      */
-    public static Map<String, Number> calculateWave(String attributeRange, int addChance, int playerLevel, Random random) {
-        String[] parts = attributeRange.split("\\s*=>\\s*");
-        int minValue = Integer.parseInt(parts[0].trim());
-        int maxValue = Integer.parseInt(parts[1].trim());
+    public static Map<String, Number> calculateWave(List<Integer> attributeRange, int addChance, int playerLevel, Random random) {
+        int minValue = attributeRange.get(0);
+        int maxValue = attributeRange.get(1);
         int delta = Math.max(0, maxValue - minValue);
 
         // 基础随机
@@ -155,8 +178,8 @@ public class ForgeUtils {
         if (lore == null || lore.isEmpty()) return null;
 
         // 获取全局配置
-        Map<String, String> levelMap = Settings.I.Attrib_Level_Text;
-        if (levelMap == null || levelMap.isEmpty()) return null;
+        Map<String, String> levelMap = Settings.Level.getLore();
+        if (levelMap.isEmpty()) return null;
 
         for (String line : lore) {
             for (Map.Entry<String, String> entry : levelMap.entrySet()) {
@@ -180,7 +203,7 @@ public class ForgeUtils {
         if (lore == null || lore.isEmpty() || newAttribute == null) return lore;
 
         // 获取属性前缀作为匹配依据（例如 "§a攻击力： "）
-        String prefix = extractAttributePrefix(newAttribute);
+        String prefix = LoreUtils.extractPrefix(newAttribute);
 
         Bukkit.getLogger().info("AttributePrefix: " + prefix);
 
@@ -197,18 +220,41 @@ public class ForgeUtils {
         return lore;
     }
 
-    /**
-     * 提取属性前缀，用作匹配依据
-     * 例如 "§a攻击力： §d25-35§A§0" -> "§a攻击力： "
-     */
-    private static String extractAttributePrefix(String attributeLine) {
-        Pattern pattern = Pattern.compile("(§.)?[+\\-]?(§.)?\\d+");
-        Matcher matcher = pattern.matcher(attributeLine);
-        if (matcher.find()) {
-            // 前缀就是数字区间之前的部分
-            return attributeLine.substring(0, matcher.start());
+    public static List<String> getRandomAttributes(ItemStack itemStack) {
+        if (itemStack == null || itemStack.getItemMeta() == null) {
+            return Collections.emptyList();
         }
-        return null;
+        ItemMeta itemMeta = itemStack.getItemMeta();
+        if (!itemMeta.hasLore()) {
+            return Collections.emptyList();
+        }
+        if (!isForgedItem(itemStack)) {
+            return Collections.emptyList();
+        }
+        String drawName = NullForge.getItemManager().getStringNBT(itemStack, "DrawName");
+        DrawData drawData = DrawManager.getDrawDataOfFileName(drawName);
+        if (drawData == null) {
+            return Collections.emptyList();
+        }
+
+        List<String> allRandomAttributes = new ArrayList<>(drawData.getRandomAttributes());
+        if (drawData.getType().equals("Weapon")) {
+            allRandomAttributes.addAll(Settings.I.GlobalRandomWeaponAttributes);
+        } else {
+            allRandomAttributes.addAll(Settings.I.GlobalRandomArmorAttributes);
+        }
+        return LoreUtils.similarMatch(itemMeta.getLore(), allRandomAttributes);
+    }
+
+    public static List<String> removeRandomAttributes(List<String> lore) {
+        if (lore == null || lore.isEmpty()) return lore;
+
+        List<String> globalRandomAttributes = new ArrayList<>(Settings.I.GlobalRandomArmorAttributes);
+        globalRandomAttributes.addAll(Settings.I.GlobalRandomWeaponAttributes);
+
+        List<String> toRemove = LoreUtils.similarMatch(lore, globalRandomAttributes);
+        lore.removeAll(toRemove);
+        return lore;
     }
 
     public static boolean isReforgeStone(ItemStack item) {

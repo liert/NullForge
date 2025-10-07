@@ -2,3 +2,15 @@ A:
   Material: STAINED_GLASS_PANE
   Color: Gray
   DisplayName: "占位符"
+R:
+  Material: STAINED_GLASS_PANE
+  Color: Red
+  DisplayName: "占位符"
+Y:
+  Material: STAINED_GLASS_PANE
+  Color: Yellow
+  DisplayName: "占位符"
+G:
+  Material: STAINED_GLASS_PANE
+  Color: Green
+  DisplayName: "占位符"

@@ -15,7 +15,7 @@ public class TempItemStack {
     private static final Map<Player, TempItemStack> tempItemStackMap = new HashMap<>();
     private final Player player;
     public Map<ItemStack, Integer> itemStacks = new HashMap<>();
-    private Map<ItemStack, Integer> luckStones = new HashMap<>();
+    private final Map<ItemStack, Integer> luckStones = new HashMap<>();
 
     private TempItemStack(Player player) {
         this.player = player;

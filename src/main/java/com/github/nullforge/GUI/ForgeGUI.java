@@ -1,7 +1,11 @@
 package com.github.nullforge.GUI;
 
+import com.github.nullbridge.Inventory.InventoryContext;
 import com.github.nullbridge.Inventory.NullInventory;
+import com.github.nullbridge.Inventory.NullInventoryHolder;
 import com.github.nullbridge.annotate.RegisterInventory;
+import com.github.nullbridge.annotate.SlotClick;
+import com.github.nullbridge.manager.InventoryManager;
 import com.github.nullforge.Config.Settings;
 import com.github.nullforge.Data.DrawData;
 import com.github.nullforge.Data.DrawManager;
@@ -9,103 +13,125 @@ import com.github.nullforge.Data.PlayerData;
 import com.github.nullforge.Data.TempItemStack;
 import com.github.nullforge.Listeners.OnPlayerClickInv;
 import com.github.nullforge.MessageLoader;
-import com.github.nullforge.Utils.ItemMaker;
-import org.bukkit.Material;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @RegisterInventory
 public class ForgeGUI extends NullInventory {
     private static ForgeGUI instance;
 
-    public Inventory initInventory(ItemStack draw) {
-        Inventory inv = createInventory(null, 27, "§c锻造系统");
-        ItemStack red = ItemMaker.create(Material.STAINED_GLASS_PANE, (short)14, MessageLoader.getMessage("gui-forge-draw"), "");
-        ItemStack yellow = ItemMaker.create(Material.STAINED_GLASS_PANE, (short)4, MessageLoader.getMessage("gui-forge-gem"), "");
-        ItemStack green = ItemMaker.create(Material.STAINED_GLASS_PANE, (short)5, MessageLoader.getMessage("gui-forge-click"), "");
-        ItemStack anvil = ItemMaker.create(145, 0, "", "");
-        for (int i = 0; i < 27; i++) {
-            if (i == 0 || i == 1 || i == 2 || i == 9 || i == 11 || i == 18 || i == 19 || i == 20) {
-                inv.setItem(i, red);
-            } else if (i == 3 || i == 4 || i == 5 || i == 12 || i == 14 || i == 21 || i == 22 || i == 23) {
-                inv.setItem(i, yellow);
-            } else if (i == 6 || i == 7 || i == 8 || i == 15 || i == 17 || i == 24 || i == 25 || i == 26) {
-                inv.setItem(i, green);
-            } else if (i == 10) {
-                inv.setItem(i, draw);
-            } else if (i == 16) {
-                inv.setItem(i, anvil);
-            }
+    @Override
+    public void initInventory(InventoryContext context) {
+        List<Integer> drawSlots = getFlagSlots("图纸槽");
+        if (drawSlots.isEmpty()) {
+            return;
         }
-        return inv;
+        Inventory inventory = context.getInventory();
+        Bukkit.getLogger().info(drawSlots.toString());
+        inventory.setItem(drawSlots.get(0), context.get("draw", ItemStack.class));
+    }
+
+    @SlotClick(flag = "输入槽")
+    public void onInputClick(InventoryClickEvent e) {
+        e.setCancelled(false);
+    }
+
+    @SlotClick(flag = "锻造")
+    public void onForgeClick(InventoryClickEvent e) {
+        e.setCancelled(true);
+        NullInventoryHolder holder = (NullInventoryHolder) e.getInventory().getHolder();
+        InventoryContext context = holder.getContext();
+        Player player = (Player) e.getWhoClicked();
+        ItemStack gem = this.getInventoryItem(context, "输入槽");
+
+        if (gem == null) {
+            player.sendMessage(MessageLoader.getMessage("gui-gem-empty")); //宝石不能为空
+            return;
+        }
+        ItemStack draw = getInventoryItem(context, "图纸槽");
+        DrawData drawData = DrawManager.getDraw(draw);
+        if (drawData == null) {
+            player.sendMessage(MessageLoader.getMessage("gui-invalid-draw")); //图纸不合法
+            return;
+        }
+        int playerLevel = PlayerData.pMap.get(player.getName()).getLevel();
+        if (playerLevel < drawData.getNeedPlayerLevel()) {
+            player.sendMessage(MessageLoader.getMessage("gui-not-level") + drawData.getNeedPlayerLevel()); //锻造等级不足
+            return;
+        }
+        ItemStack needGem = drawData.getGem();
+        int gemLevel = this.getGemLevel(needGem, gem);
+        if (gemLevel <= 0) {
+            player.sendMessage(MessageLoader.getMessage("gui-not-gem")); //放置的不是有效的锻造宝石
+            return;
+        }
+        if (gemLevel < drawData.getNeedGemLevel()) {
+            String message = MessageLoader.getMessage("gui-not-gemlevel").replace("%gemlevel%", String.valueOf(drawData.getNeedGemLevel())); //需要的宝石等级不足
+            player.sendMessage(message);
+            return;
+        }
+
+        TempItemStack.addTempItem(player, gem);
+        OnPlayerClickInv.nextList.add(player.getName());
+        InventoryContext newContext = new InventoryContext(player);
+        newContext.put("drawData", drawData);
+        InventoryManager.open(ForgeInputGUI.class, newContext);
     }
 
     @Override
     public void click(InventoryClickEvent e) {
-        int slot = e.getRawSlot();
-        if (slot < 0) {
-            return;
+        if (e.getRawSlot() < inventorySize) {
+            e.setCancelled(true);
         }
-        if (slot > 26) {
-            if (e.getAction() != InventoryAction.PICKUP_ALL && e.getAction() != InventoryAction.PICKUP_HALF && e.getAction() != InventoryAction.PICKUP_ONE && e.getAction() != InventoryAction.PICKUP_SOME && e.getAction() != InventoryAction.PLACE_ALL && e.getAction() != InventoryAction.PLACE_ONE && e.getAction() != InventoryAction.PLACE_SOME) {
-                e.setCancelled(true);
-            }
-            return;
-        }
-        if (slot == 13) {
-            return;
-        }
-        e.setCancelled(true);
-        if (slot != 16) {
-            return;
-        }
+        // NullInventoryHolder holder = (NullInventoryHolder) e.getInventory().getHolder();
+        // InventoryContext context = holder.getContext();
+        // Player player = (Player) e.getWhoClicked();
+        // ItemStack gem = getInventoryItem(context, "输入槽");
 
-        Player p = (Player) e.getWhoClicked();
-
-        Inventory inv = e.getInventory();
-        if (inv.getItem(13) == null) {
-            p.sendMessage(MessageLoader.getMessage("gui-gem-empty")); //宝石不能为空
-            return;
-        }
-        ItemStack draw = inv.getItem(10).clone();
-        ItemStack gemstone = inv.getItem(13).clone();
-        DrawData drawData = DrawManager.getDraw(draw);
-        if (drawData == null) {
-            p.sendMessage(MessageLoader.getMessage("gui-invalid-draw")); //图纸不合法
-            return;
-        }
-        int playerLevel = PlayerData.pMap.get(p.getName()).getLevel();
-        if (playerLevel < drawData.getNeedPlayerLevel()) {
-            p.sendMessage(MessageLoader.getMessage("gui-not-level") + drawData.getNeedPlayerLevel()); //锻造等级不足
-            return;
-        }
-        ItemStack item = drawData.getGem();
-        int gemstoneLevel = this.getGemLevel(item, gemstone);
-        if (gemstoneLevel <= 0) {
-            p.sendMessage(MessageLoader.getMessage("gui-not-gem")); //放置的不是有效的锻造宝石
-            return;
-        }
-        if (gemstoneLevel < drawData.getNeedGemLevel()) {
-            String message = MessageLoader.getMessage("gui-not-gemlevel").replace("%gemlevel%", String.valueOf(drawData.getNeedGemLevel())); //需要的宝石等级不足
-            p.sendMessage(message);
-            return;
-        }
-        OnPlayerClickInv.unClickList.remove(p.getName());
-        List<ItemStack> tempList = new ArrayList<>();
-        tempList.add(gemstone);
-        OnPlayerClickInv.tempItemMap.put(p.getName(), tempList);
-        TempItemStack.addTempItem(p, gemstone);
-        OnPlayerClickInv.drawPlayerMap.put(p.getName(), drawData);
-        OnPlayerClickInv.nextList.add(p.getName());
-        p.openInventory(ForgeInputGUI.getInstance().initInventory());
+        // if (gem == null) {
+        //     player.sendMessage(MessageLoader.getMessage("gui-gem-empty")); //宝石不能为空
+        //     return;
+        // }
+        // ItemStack draw = getInventoryItem(context, "图纸槽");
+        // DrawData drawData = DrawManager.getDraw(draw);
+        // if (drawData == null) {
+        //     player.sendMessage(MessageLoader.getMessage("gui-invalid-draw")); //图纸不合法
+        //     return;
+        // }
+        // int playerLevel = PlayerData.pMap.get(player.getName()).getLevel();
+        // if (playerLevel < drawData.getNeedPlayerLevel()) {
+        //     player.sendMessage(MessageLoader.getMessage("gui-not-level") + drawData.getNeedPlayerLevel()); //锻造等级不足
+        //     return;
+        // }
+        // ItemStack needGem = drawData.getGem();
+        // int gemLevel = this.getGemLevel(needGem, gem);
+        // if (gemLevel <= 0) {
+        //     player.sendMessage(MessageLoader.getMessage("gui-not-gem")); //放置的不是有效的锻造宝石
+        //     return;
+        // }
+        // if (gemLevel < drawData.getNeedGemLevel()) {
+        //     String message = MessageLoader.getMessage("gui-not-gemlevel").replace("%gemlevel%", String.valueOf(drawData.getNeedGemLevel())); //需要的宝石等级不足
+        //     player.sendMessage(message);
+        //     return;
+        // }
+        // OnPlayerClickInv.unClickList.remove(player.getName());
+        // List<ItemStack> tempList = new ArrayList<>();
+        // tempList.add(gem);
+        // OnPlayerClickInv.tempItemMap.put(player.getName(), tempList);
+        // TempItemStack.addTempItem(player, gem);
+        // // OnPlayerClickInv.drawPlayerMap.put(player.getName(), drawData);
+        // OnPlayerClickInv.nextList.add(player.getName());
+        // // player.openInventory(ForgeInputGUI.getInstance().initInventory());
+        // InventoryContext newContext = new InventoryContext(player);
+        // newContext.put("drawData", drawData);
+        // InventoryManager.open(ForgeInputGUI.class, newContext);
     }
 
     @Override
@@ -139,38 +165,38 @@ public class ForgeGUI extends NullInventory {
         return instance;
     }
 
-    public int getGemLevel(ItemStack gem, ItemStack item) {
-        if (item.getType() != gem.getType()) {
+    public int getGemLevel(ItemStack needGem, ItemStack gem) {
+        if (gem.getType() != needGem.getType()) {
             return -1;
         }
-        if (!item.hasItemMeta()) {
+        if (!gem.hasItemMeta()) {
             return -1;
         }
-        ItemMeta gemMeta = gem.getItemMeta();
-        ItemMeta itemMeta = item.getItemMeta();
-        if (!itemMeta.hasDisplayName()) {
+        ItemMeta needGemItemMeta = needGem.getItemMeta();
+        ItemMeta gemItemMeta = gem.getItemMeta();
+        if (!gemItemMeta.hasDisplayName()) {
             return -1;
         }
-        if (!itemMeta.getDisplayName().equals(gemMeta.getDisplayName())) {
+        if (!gemItemMeta.getDisplayName().equals(needGemItemMeta.getDisplayName())) {
             return -1;
         }
-        if (!itemMeta.hasLore()) {
+        if (!gemItemMeta.hasLore()) {
             return -1;
         }
-        List<String> gemLore = gemMeta.getLore();
-        List<String> itemLore = itemMeta.getLore();
-        if (gemLore.size() != itemLore.size()) {
+        List<String> needGemLore = needGemItemMeta.getLore();
+        List<String> gemLore = gemItemMeta.getLore();
+        if (needGemLore.size() != gemLore.size()) {
             return -1;
         }
         int level = 0;
-        for (int i = 0; i < gemLore.size(); ++i) {
+        for (int i = 0; i < needGemLore.size(); ++i) {
             if (i != 1) {
-                if (gemLore.get(i).equals(itemLore.get(i))) {
+                if (needGemLore.get(i).equals(gemLore.get(i))) {
                     continue;
                 }
                 return -1;
             }
-            String levelLore = itemLore.get(i);
+            String levelLore = gemLore.get(i);
             if (!levelLore.startsWith(Settings.I.Gem_Level_Color)) {
                 return -1;
             }

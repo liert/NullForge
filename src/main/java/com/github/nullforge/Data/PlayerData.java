@@ -9,7 +9,7 @@ import java.util.*;
 
 public class PlayerData {
     public static Map<String, PlayerData> pMap = new HashMap<>();
-    private String playerName;
+    private final String playerName;
     private int Level;
     private double Exp;
     private List<String> learn = new ArrayList<>();
@@ -114,7 +114,7 @@ public class PlayerData {
         result = result * PRIME + this.getLevel();
         result = result * PRIME + Double.hashCode(this.getExp());
         List<String> learn = this.getLearn();
-        result = result * PRIME + (learn == null ? 43 : ((Object)learn).hashCode());
+        result = result * PRIME + (learn == null ? 43 : learn.hashCode());
         return result;
     }
 

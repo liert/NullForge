@@ -1,12 +1,13 @@
 package com.github.nullforge.GUI;
 
+import com.github.nullbridge.Inventory.InventoryContext;
 import com.github.nullbridge.Inventory.NullInventory;
+import com.github.nullbridge.Inventory.NullInventoryHolder;
 import com.github.nullbridge.annotate.RegisterInventory;
 import com.github.nullforge.Config.Settings;
 import com.github.nullforge.Data.DrawData;
 import com.github.nullforge.Data.TempItemStack;
 import com.github.nullforge.Event.PlayerForgeItemEvent;
-import com.github.nullforge.Listeners.OnPlayerClickInv;
 import com.github.nullforge.MessageLoader;
 import com.github.nullforge.NullForge;
 import com.github.nullforge.Utils.ExpUtil;
@@ -30,24 +31,24 @@ public class ForgeInputGUI extends NullInventory {
     }
 
     @Override
-    public void click(InventoryClickEvent e) {
+    public void initInventory(InventoryContext context) {}
 
-    }
+    @Override
+    public void click(InventoryClickEvent e) {}
 
     @Override
     public void close(InventoryCloseEvent e) {
+        NullInventoryHolder holder = (NullInventoryHolder) e.getInventory().getHolder();
+        InventoryContext context = holder.getContext();
         Player player = (Player) e.getPlayer();
-        if (!OnPlayerClickInv.drawPlayerMap.containsKey(player.getName()) || !OnPlayerClickInv.tempItemMap.containsKey(player.getName())) {
-            return;
-        }
         TempItemStack tempItemStack = TempItemStack.getTempItemStack(player);
-        Inventory inv = e.getInventory();
-        DrawData dd = OnPlayerClickInv.drawPlayerMap.get(player.getName());
-        List<ItemStack> formulas = dd.getFormula();
+        Inventory inventory = e.getInventory();
+        DrawData drawData = context.get("drawData", DrawData.class);
+        List<ItemStack> formulas = drawData.getFormula();
         // 获取玩家放入的材料
-        for (int j = 0; j < inv.getSize(); ++j) {
-            if (inv.getItem(j) == null) continue;
-            tempItemStack.addTempItem(inv.getItem(j).clone());
+        for (int j = 0; j < inventory.getSize(); ++j) {
+            if (inventory.getItem(j) == null) continue;
+            tempItemStack.addTempItem(inventory.getItem(j).clone());
         }
 
         // 没有放入锻造材料，返回宝石
@@ -58,7 +59,7 @@ public class ForgeInputGUI extends NullInventory {
         }
 
         // 放入的材料不足以锻造一个物品，返回材料和宝石
-        formulas.add(dd.getGem());
+        formulas.add(drawData.getGem());
         int finalCount = getFinalCount(tempItemStack, formulas);
         if (finalCount <= 0) {
             tempItemStack.toPlayerInv();
@@ -83,24 +84,25 @@ public class ForgeInputGUI extends NullInventory {
                 // 发送格式化后的消息给玩家
                 player.sendMessage(formattedMessage);
             }
-            String level = RandomUtil.probabString(player, dd, Settings.I.Forge_Chance);
-            String quality = Settings.I.Attrib_Level_Text.get(level);
-            ItemStack forgedItem = ForgeUtils.generateForgedItem(player, dd, level, addChance);
+            String level = RandomUtil.probabString(player, drawData, Settings.Level.getChance());
+            Settings.Level levelObj = Settings.I.Levels.get(level);
+            // String quality = levelObj.Lore;
+            ItemStack forgedItem = ForgeUtils.generateForgedItem(player, drawData, level, addChance);
             finalResult.add(forgedItem);
 
-            totalExp += ExpUtil.getNeedExp(dd.getNeedGemLevel());
+            totalExp += ExpUtil.getNeedExp(drawData.getNeedGemLevel());
 
             // 统计品质
-            qualityInfo.put(quality, qualityInfo.getOrDefault(quality, 0) + 1);
+            qualityInfo.put(levelObj.Lore, qualityInfo.getOrDefault(levelObj.Lore, 0) + 1);
 
             // 执行自定义命令
-            List<String> customCommands = dd.getCustomCommands();
+            List<String> customCommands = drawData.getCustomCommands();
             for (String command : customCommands) {
                 command = command.replace("%player%", player.getName()); // 替换占位符
                 Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command); // 执行命令
             }
 
-            PlayerForgeItemEvent event = new PlayerForgeItemEvent(player, dd, finalResult, qualityInfo, totalExp, i == finalCount - 1);
+            PlayerForgeItemEvent event = new PlayerForgeItemEvent(player, drawData, finalResult, qualityInfo, totalExp, i == finalCount - 1);
             Bukkit.getServer().getPluginManager().callEvent(event);
         }
 

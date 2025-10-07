@@ -1,5 +1,6 @@
 package com.github.nullforge.Config;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -15,9 +16,9 @@ public class Settings {
     public String Gem_Level_Color;
     public int Gem_Level_Up_Chance;
     public Map<Integer, Integer> Gem_Level_Chance;
-    public Map<String, String> Forge_Attrib;
-    public Map<String, Float> Forge_Chance;
-    public Map<String, String> Attrib_Level_Text;
+    // public Map<String, String> Forge_Attrib;
+    // public Map<String, Float> Forge_Chance;
+    // public Map<String, String> Attrib_Level_Text;
     public String Attrib_Rating_Text;
     public Map<Integer, Integer> Forge_Exp;
     public int Forge_Exp_Float;
@@ -31,6 +32,8 @@ public class Settings {
     public String ReforgeStoneFlag;
     public String LuckyStoneFlag;
 
+    public Map<String, Level> Levels;
+
     public boolean Quick_Forge;
     public int Quick_Forge_Cooldown;
 
@@ -38,6 +41,33 @@ public class Settings {
     public int Large_Guarantee_Threshold;
     public String Small_Guaranteed_Quality;
     public String Large_Guaranteed_Quality;
+
+    // public Map<String, List<Integer>> RandomAttributes;
+    public List<String> GlobalRandomWeaponAttributes;
+    public List<String> GlobalRandomArmorAttributes;
+
+    public static class Level {
+        public String Lore;
+        public Float Chance;
+        public List<Integer> AttributeRange;
+        public List<Integer> RandomAttributeRange;
+
+        public static Map<String, String> getLore() {
+            Map<String, String> lore = new HashMap<>();
+            for (Map.Entry<String, Level> entry : Settings.I.Levels.entrySet()) {
+                lore.put(entry.getKey(), entry.getValue().Lore);
+            }
+            return lore;
+        }
+
+        public static Map<String, Float> getChance() {
+            Map<String, Float> chance = new HashMap<>();
+            for (Map.Entry<String, Level> entry : Settings.I.Levels.entrySet()) {
+                chance.put(entry.getKey(), entry.getValue().Chance);
+            }
+            return chance;
+        }
+    }
 
     public Settings() {
         I = this;

@@ -6,17 +6,34 @@ import com.github.nullforge.Data.DrawData;
 import com.github.nullforge.Data.PlayerData;
 import com.github.nullforge.NullForge;
 import com.github.nullforge.db.DBHelper;
+import com.github.nullforge.db.MySQL;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import java.io.File;
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.*;
 
 public class TransformUtils {
+    private static DBHelper helper;
+
+    public static void initialize() {
+        helper = new MySQL(DBConfig.MYSQL_URL, DBConfig.USER, DBConfig.PASSWORD);
+        Connection conn = null;
+        try {
+            conn = helper.getConnection();
+        } catch (SQLException e) {
+            Bukkit.getLogger().warning("§c[NullForge] MySQL数据库连接失败，无法使用图纸转换功能！");
+        } finally {
+            helper.close(conn);
+        }
+    }
+
     public static Map<String, Integer> transformDraw() {
-        List<Map<String, Object>> list = DBHelper.executeQuery("SELECT * FROM " + DBConfig.DRAW_TABLE);
+        List<Map<String, Object>> list = helper.executeQuery("SELECT * FROM " + DBConfig.DRAW_TABLE);
         int succeed = 0;
         int failed = 0;
         for (Map<String, Object> map : list) {
@@ -68,7 +85,7 @@ public class TransformUtils {
     }
 
     public static Map<String, Integer> transformPlayer() {
-        List<Map<String, Object>> list = DBHelper.executeQuery("SELECT * FROM " + DBConfig.PLAYER_TABLE);
+        List<Map<String, Object>> list = helper.executeQuery("SELECT * FROM " + DBConfig.PLAYER_TABLE);
         int succeed = 0;
         int failed = 0;
         for (Map<String, Object> map : list) {

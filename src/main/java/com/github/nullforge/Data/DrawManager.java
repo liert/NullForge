@@ -1,8 +1,11 @@
 package com.github.nullforge.Data;
 
 import com.github.nullforge.Config.Settings;
+import com.github.nullforge.Utils.DrawUtils;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -51,6 +54,23 @@ public class DrawManager {
     public static void addDraw(DrawData drawData) {
         drawManager.put(drawData.getDisplayName(), drawData);
         drawCount++;
+    }
+
+    public static void removeDraw(DrawData drawData) {
+        if (!drawManager.containsKey(drawData.getDisplayName()) && drawCount <= 0) {
+            return;
+        }
+        drawManager.remove(drawData.getDisplayName());
+        drawCount--;
+    }
+
+    public static void loadDraw(File file) {
+        DrawData drawData = new DrawData(file);
+        if (drawData.isOldVersion()) {
+            DrawUtils.autoRepair(drawData);
+            return;
+        }
+        addDraw(drawData);
     }
 
     public static int getDrawCount() {

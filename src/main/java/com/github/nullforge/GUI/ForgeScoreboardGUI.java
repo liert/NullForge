@@ -1,5 +1,6 @@
 package com.github.nullforge.GUI;
 
+import com.github.nullbridge.Inventory.InventoryContext;
 import com.github.nullbridge.Inventory.NullInventory;
 import com.github.nullbridge.annotate.RegisterInventory;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -12,6 +13,11 @@ public class ForgeScoreboardGUI extends NullInventory {
 
     public Inventory initInventory() {
         return null;
+    }
+
+    @Override
+    public void initInventory(InventoryContext inventoryContext) {
+
     }
 
     @Override

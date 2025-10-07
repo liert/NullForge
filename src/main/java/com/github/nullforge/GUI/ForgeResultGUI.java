@@ -1,6 +1,8 @@
 package com.github.nullforge.GUI;
 
+import com.github.nullbridge.Inventory.InventoryContext;
 import com.github.nullbridge.Inventory.NullInventory;
+import com.github.nullbridge.Inventory.NullInventoryHolder;
 import com.github.nullbridge.annotate.RegisterInventory;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -26,7 +28,25 @@ public class ForgeResultGUI extends NullInventory {
     }
 
     @Override
-    public void click(InventoryClickEvent inventoryClickEvent) {}
+    public void initInventory(InventoryContext inventoryContext) {}
+
+    @Override
+    public Inventory buildInventory(InventoryContext context) {
+        List<ItemStack> itemStacks = (List<ItemStack>) context.get("items", List.class);
+        inventorySize = itemStacks.size() + (9 - itemStacks.size() % 9);
+        Inventory inventory = createInventory(new NullInventoryHolder(context), inventorySize, title);
+        for (int i = 0; i < itemStacks.size(); ++i) {
+            ItemStack item = itemStacks.get(i);
+            inventory.setItem(i, item);
+        }
+        context.setInventory(inventory);
+        initInventory(context);
+        initialized = true;
+        return inventory;
+    }
+
+    @Override
+    public void click(InventoryClickEvent e) {}
 
     @Override
     public void close(InventoryCloseEvent e) {

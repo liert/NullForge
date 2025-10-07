@@ -28,9 +28,9 @@ public class ExpUtil {
 
     public static double getRandomExp(int level) {
         int baseExp = Settings.I.Forge_Exp.get(level);
-        int floatExp = NullForge.rd.nextInt(Settings.I.Forge_Exp_Float);
+        int floatExp = NullForge.random.nextInt(Settings.I.Forge_Exp_Float);
         double expFloat = (double)baseExp * ((double)floatExp / 100.0);
-        return NullForge.rd.nextBoolean() ? (double)baseExp + expFloat : (double)baseExp - expFloat;
+        return NullForge.random.nextBoolean() ? (double)baseExp + expFloat : (double)baseExp - expFloat;
     }
 }
 

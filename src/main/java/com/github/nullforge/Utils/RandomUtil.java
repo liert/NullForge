@@ -3,12 +3,10 @@ package com.github.nullforge.Utils;
 import com.github.nullforge.Config.Settings;
 import com.github.nullforge.Data.DrawData;
 import com.github.nullforge.Data.PlayerData;
+import com.github.nullforge.NullForge;
 import org.bukkit.entity.Player;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Random;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class RandomUtil {
@@ -67,6 +65,55 @@ public class RandomUtil {
             normalizedWeights.put(entry.getKey(), entry.getValue() / totalWeight);
         }
         return normalizedWeights;
+    }
+
+    public static int getRandomAttributeCount(String level) {
+        Settings.Level levelObj = Settings.I.Levels.get(level);
+
+        if (levelObj.RandomAttributeRange == null || levelObj.RandomAttributeRange.size() != 2) {
+            return 0;
+        }
+
+        int min = levelObj.RandomAttributeRange.get(0);
+        int max = levelObj.RandomAttributeRange.get(1);
+        return NullForge.random.nextInt(max - min + 1) + min;
+    }
+
+    /**
+     * 根据品质获取随机属性
+     */
+    public static List<String> getRandomAttributes(int randomCount, String type, List<String> privateAttributes) {
+        if (randomCount <= 0) {
+            return Collections.emptyList();
+        }
+
+        List<String> attributes = new ArrayList<>(privateAttributes);
+        if (type.equals("Armor")) {
+            attributes.addAll(Settings.I.GlobalRandomArmorAttributes);
+        } else {
+            attributes.addAll(Settings.I.GlobalRandomWeaponAttributes);
+        }
+
+        if (attributes.size() <= randomCount) {
+            return attributes;
+        }
+
+        List<String> result = new ArrayList<>();
+        Set<Integer> indexes = new HashSet<>();
+        while (indexes.size() < randomCount) {
+            indexes.add(NullForge.random.nextInt(attributes.size()));
+        }
+
+        for (int i: indexes) {
+            result.add(attributes.get(i));
+        }
+
+        return result;
+    }
+
+    public static List<String> getRandomAttributes(String level, String type, List<String> privateAttributes) {
+        int randomCount = getRandomAttributeCount(level);
+        return getRandomAttributes(randomCount, type, privateAttributes);
     }
 }
 

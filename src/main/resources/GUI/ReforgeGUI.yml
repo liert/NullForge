@@ -12,7 +12,7 @@ ItemMap:
   O:
     Flag: 输出
   E:
-    Flag: 词条输入
+    Flag: 词条展示框
   N:
     Flag: 取消
     Material: BARRIER

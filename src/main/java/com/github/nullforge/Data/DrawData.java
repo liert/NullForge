@@ -22,16 +22,21 @@ import java.util.regex.Pattern;
 
 public class DrawData {
     private File file;
+    private boolean oldVersion = false;
     private final String displayName;
+    private String type;
     private String gem;
     private List<String> formula;
     private String result;
     private int needGemLevel;
     private int needPlayerLevel;
     private List<String> detail;
-    private List<String> attrib;
+    private List<String> attrib = new ArrayList<>();
+    private List<String> lore = new ArrayList<>();
+    private List<String> attributes = new ArrayList<>();
+    private List<String> randomAttributes = new ArrayList<>();
     private List<String> reforgeAttributes = new ArrayList<>();
-    private List<String> customCommands; // 新增字段
+    private List<String> customCommands = new ArrayList<>(); // 新增字段
 
     public DrawData(String displayName, String gem, List<String> formula, String result, int needGemLevel, int needPlayerLevel, List<String> detail, List<String> attrib) {
         this.displayName = displayName;
@@ -42,30 +47,39 @@ public class DrawData {
         this.needPlayerLevel = needPlayerLevel;
         this.detail = detail;
         this.attrib = attrib;
-        this.customCommands = new ArrayList<>();
         DrawManager.addDraw(this);
     }
 
-    private DrawData(File file) {
+    public DrawData(File file) {
         YamlConfiguration drawConfig = YamlConfiguration.loadConfiguration(file);
         this.file = file;
         this.displayName = drawConfig.getString("name");
+        if (drawConfig.contains("Type")) {
+            this.type = drawConfig.getString("Type");
+        }
         this.gem = drawConfig.getString("gem");
         this.formula = drawConfig.getStringList("formula");
         this.result = drawConfig.getString("result");
         this.needGemLevel = drawConfig.getInt("gemlevel");
         this.needPlayerLevel = drawConfig.getInt("playerlevel");
         this.detail = drawConfig.getStringList("detail");
-        this.attrib = drawConfig.getStringList("attrib");
-        this.customCommands = drawConfig.getStringList("customCommands"); // 读取自定义命令
+        if (drawConfig.contains("Lore")) {
+            this.lore = drawConfig.getStringList("Lore");
+        }
+        if (drawConfig.contains("Attributes")) {
+            this.attributes = drawConfig.getStringList("Attributes");
+        } else if (drawConfig.contains("attrib")) {
+            this.attrib = drawConfig.getStringList("attrib");
+            this.oldVersion = true;
+        }
+        if (drawConfig.contains("RandomAttributes")) {
+            this.randomAttributes = drawConfig.getStringList("RandomAttributes");
+        }
+        // 已废弃
         if (drawConfig.contains("ReforgeAttributes")) {
             this.reforgeAttributes = drawConfig.getStringList("ReforgeAttributes");
         }
-        DrawManager.addDraw(this);
-    }
-
-    public static void CreateDrawData(File file) {
-        new DrawData(file);
+        this.customCommands = drawConfig.getStringList("customCommands"); // 读取自定义命令
     }
 
     public void setFile(File file) {
@@ -74,6 +88,18 @@ public class DrawData {
 
     public File getFile() {
         return file;
+    }
+
+    public boolean isOldVersion() {
+        return oldVersion;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public String getType() {
+        return type;
     }
 
     public String getDisplayName() {
@@ -153,14 +179,19 @@ public class DrawData {
     public File saveDraw() throws IOException {
         Map<String, Object> data = new LinkedHashMap<>();
         data.put("name", this.displayName);
+        data.put("Type", this.type);
         data.put("gem", this.gem);
         data.put("gemlevel", this.needGemLevel);
         data.put("playerlevel", this.needPlayerLevel);
         data.put("result", this.result);
         data.put("formula", this.formula);
         data.put("detail", this.detail);
-        data.put("attrib", this.attrib);
-        data.put("ReforgeAttributes", this.reforgeAttributes);
+        if (!this.attrib.isEmpty()) {
+            data.put("attrib", this.attrib);
+        }
+        data.put("Lore", this.lore);
+        data.put("Attributes", this.attributes);
+        data.put("RandomAttributes", this.randomAttributes);
         data.put("customCommands", this.customCommands);
 
         DumperOptions options = new DumperOptions();
@@ -194,6 +225,30 @@ public class DrawData {
 
     public List<String> getDetail() {
         return this.detail;
+    }
+
+    public void setLore(List<String> lore) {
+        this.lore = lore;
+    }
+
+    public List<String> getLore() {
+        return lore;
+    }
+
+    public void setAttributes(List<String> attributes) {
+        this.attributes = attributes;
+    }
+
+    public List<String> getAttributes() {
+        return attributes;
+    }
+
+    public void setRandomAttributes(List<String> randomAttributes) {
+        this.randomAttributes = randomAttributes;
+    }
+
+    public List<String> getRandomAttributes() {
+        return randomAttributes;
     }
 
     public List<String> getAttrib() {
@@ -283,7 +338,7 @@ public class DrawData {
         ItemStack $gem = this.getGem();
         result = result * PRIME + ($gem == null ? 43 : $gem.hashCode());
         List<ItemStack> $formula = this.getFormula();
-        result = result * PRIME + ($formula == null ? 43 : ((Object) $formula).hashCode());
+        result = result * PRIME + ($formula == null ? 43 : $formula.hashCode());
         ItemStack $result = this.getResult();
         result = result * PRIME + ($result == null ? 43 : $result.hashCode());
         result = result * PRIME + this.getNeedGemLevel();

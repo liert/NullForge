@@ -80,7 +80,7 @@ public class YamlManager {
         Date first = new Date();
         for (File file : files) {
             try {
-                DrawData.CreateDrawData(file);
+                DrawManager.loadDraw(file);
             } catch (Exception e) {
                 Bukkit.getConsoleSender().sendMessage("§c[错误]§a加载文件 " + file.getName() + " 时发生异常: " + e.getMessage());
                 e.printStackTrace();

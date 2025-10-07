@@ -1,5 +1,6 @@
 package com.github.nullforge.Commands;
 
+import com.github.nullbridge.manager.InventoryManager;
 import com.github.nullforge.Data.PlayerData;
 import com.github.nullforge.GUI.ForgeMenuGUI;
 import com.github.nullforge.MessageLoader;
@@ -16,13 +17,14 @@ public class OnForge implements CommandExecutor {
             NullForge.INSTANCE.getLogger().info("必须是玩家执行!");
             return true;
         }
-        Player p = (Player)sender;
-        PlayerData pd = PlayerData.pMap.get(p.getName());
+        Player player = (Player)sender;
+        PlayerData pd = PlayerData.pMap.get(player.getName());
         if (pd.getLearn().isEmpty()) {
-            p.sendMessage(MessageLoader.getMessage("draw-no-learn"));
+            player.sendMessage(MessageLoader.getMessage("draw-no-learn"));
             return true;
         }
-        p.openInventory(ForgeMenuGUI.getInstance().initInventory());
+        // p.openInventory(ForgeMenuGUI.getInstance().initInventory());
+        InventoryManager.open(ForgeMenuGUI.class, player);
         return true;
     }
 }

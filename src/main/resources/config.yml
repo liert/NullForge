@@ -2,25 +2,25 @@ Draw_Folder: ""
 Player_Folder: ""
 
 Ore_Chance:
-    56:
-        #掉落的物品ID，GEM_LORE内必须有该物品ID 佛则会报错
-        - 388
-        #掉落该物品的几率
-        - 500
+  56:
+    #掉落的物品ID，GEM_LORE内必须有该物品ID 佛则会报错
+    - 388
+    #掉落该物品的几率
+    - 500
 #矿石掉落宝石的世界列表
 Ore_Worlds:
-    - "zy"
-    - "plot"
+  - "zy"
+  - "plot"
 
 #宝石的LORE设置,第一行为宝石名字,第二行为第一行LORE，第三行为宝石的等级(无需改变，仅是标记)
 Gem_Lore:
-    388:
-        #宝石名字
-        - "§6[§5原初之石§6]"
-        #宝石第一行LORE用于插件判断
-        - "§c锻造类宝石"
-        #无需改变的标记项(必须在第二行)
-        - "<等级内容无需设置>"
+  388:
+    #宝石名字
+    - "§6[§5原初之石§6]"
+    #宝石第一行LORE用于插件判断
+    - "§c锻造类宝石"
+    #无需改变的标记项(必须在第二行)
+    - "<等级内容无需设置>"
 
 #图纸的物品ID
 Draw_Item_ID: 340
@@ -36,67 +36,114 @@ Gem_Level_Up_Chance: 500
 
 #宝石产生的等级几率
 Gem_Level_Chance:
-    1: 500
-    2: 300
-    3: 200
+  1: 500
+  2: 300
+  3: 200
+
+Levels:
+  "level-1":
+    Lore: "§a品质:§8粗糙"             # 等级Lore
+    Chance: 94                      # 等级出现几率(1000=100%)
+    AttributeRange: [ 4, 5 ]          # 属性波动范围（百分比）
+    RandomAttributeRange: [ 0, 1 ]    # 随机属性数量范围
+  "level-2":
+    Lore: "§a品质:§7普通"
+    Chance: 120
+    AttributeRange: [ 22, 25 ]
+    RandomAttributeRange: [ 1, 2 ]
+  "level-3":
+    Lore: "§a品质:§a优良"
+    Chance: 225
+    AttributeRange: [ 31, 45 ]
+    RandomAttributeRange: [ 1, 3 ]
+  "level-4":
+    Lore: "§a品质:§b精良"
+    Chance: 190
+    AttributeRange: [ 41, 70 ]
+    RandomAttributeRange: [ 2, 3 ]
+  "level-5":
+    Lore: "§a品质:§9稀有"
+    Chance: 235
+    AttributeRange: [ 51, 100 ]
+    RandomAttributeRange: [ 2, 4 ]
+  "level-6":
+    Lore: "§a品质:§5史诗"
+    Chance: 96
+    AttributeRange: [ 75, 150 ]
+    RandomAttributeRange: [ 3, 4 ]
+  "level-7":
+    Lore: "§a品质:§6传说"
+    Chance: 30
+    AttributeRange: [ 101, 200 ]
+    RandomAttributeRange: [ 3, 4 ]
+  "level-8":
+    Lore: "§a品质:§4逆天"
+    Chance: 20
+    AttributeRange: [ 120, 250 ]
+    RandomAttributeRange: [ 4, 4 ]
+  "level-9":
+    Lore: "§a品质:§3真理"
+    Chance: 1
+    AttributeRange: [ 150, 300 ]
+    RandomAttributeRange: [ 4, 5 ]
 
 #评价标记对应的评价内容
 Attrib_Level_Text:
-    "level-1": "§a品质:§8粗糙"
-    "level-2": "§a品质:§7普通"
-    "level-3": "§a品质:§a优良"
-    "level-4": "§a品质:§b精良"
-    "level-5": "§a品质:§9稀有"
-    "level-6": "§a品质:§5史诗"
-    "level-7": "§a品质:§6传说"
-    "level-8": "§a品质:§4逆天"
-    "level-9": "§a品质:§3真理"
+  "level-1": "§a品质:§8粗糙"
+  "level-2": "§a品质:§7普通"
+  "level-3": "§a品质:§a优良"
+  "level-4": "§a品质:§b精良"
+  "level-5": "§a品质:§9稀有"
+  "level-6": "§a品质:§5史诗"
+  "level-7": "§a品质:§6传说"
+  "level-8": "§a品质:§4逆天"
+  "level-9": "§a品质:§3真理"
 
 #锻造属性的波动范围(左边的为评价字符 右边的为波动范围 -30 => 15代表从-30%到-15%之间波动)(评价字符必须和下面的配置对应!)
 Forge_Attrib:
-    "level-1": "4 => 5"
-    "level-2": "22 => 25"
-    "level-3": "31 => 45"
-    "level-4": "41 => 70"
-    "level-5": "51 => 100"
-    "level-6": "75 => 150"
-    "level-7": "101 => 200"
-    "level-8": "121 => 250"
-    "level-9": "151 => 281"
+  "level-1": "4 => 5"
+  "level-2": "22 => 25"
+  "level-3": "31 => 45"
+  "level-4": "41 => 70"
+  "level-5": "51 => 100"
+  "level-6": "75 => 150"
+  "level-7": "101 => 200"
+  "level-8": "121 => 250"
+  "level-9": "151 => 281"
 
 #锻造属性的几率(左边对应上面配置的评价标记,右边为几率1000=100%)
 Forge_Chance:
-    "level-1": 94 #粗糙
-    "level-2": 120 #普通
-    "level-3": 225 #优良
-    "level-4": 190 #精良
-    "level-5": 235 #稀有
-    "level-6": 96 #史诗
-    "level-7": 30 #传说
-    "level-8": 20 #逆天
-    "level-9": 1 #真理
+  "level-1": 94 #粗糙
+  "level-2": 120 #普通
+  "level-3": 225 #优良
+  "level-4": 190 #精良
+  "level-5": 235 #稀有
+  "level-6": 96 #史诗
+  "level-7": 30 #传说
+  "level-8": 20 #逆天
+  "level-9": 1 #真理
 #每一个图纸所需的宝石等级对应的给予玩家的经验
 Forge_Exp:
-    1: 10
-    2: 15
-    3: 20
-    4: 30
-    5: 40
-    6: 50
-    7: 75
-    8: 100
-    9: 150
-    10: 200
-    11: 250
-    12: 300
-    13: 350
-    14: 400
-    15: 450
-    16: 500
-    17: 550
-    18: 600
-    19: 650
-    20: 700
+  1: 10
+  2: 15
+  3: 20
+  4: 30
+  5: 40
+  6: 50
+  7: 75
+  8: 100
+  9: 150
+  10: 200
+  11: 250
+  12: 300
+  13: 350
+  14: 400
+  15: 450
+  16: 500
+  17: 550
+  18: 600
+  19: 650
+  20: 700
 
 #经验的正负浮动百分比范围 30= 原始经验+/-30%*原始经验
 Forge_Exp_Float: 20
@@ -138,3 +185,21 @@ Small_Guarantee_Threshold: 10     # 小保底触发次数
 Large_Guarantee_Threshold: 80     # 大保底触发次数
 Small_Guaranteed_Quality: level-6 # 小保底保底品质
 Large_Guaranteed_Quality: level-9 # 大保底保底品质
+
+# 全局随机属性配置
+RandomAttributes:
+  "level-1": [ 0, 1 ]
+  "level-2": [ 1, 2 ]
+  "level-3": [ 1, 3 ]
+  "level-4": [ 2, 3 ]
+  "level-5": [ 2, 4 ]
+  "level-6": [ 3, 4 ]
+  "level-7": [ 3, 4 ]
+  "level-8": [ 4, 4 ]
+  "level-9": [ 4, 5 ]
+GlobalRandomWeaponAttributes: # 全局武器随机属性列表 (百分比属性)
+  - "§a冰冻几率： §d(10)%§A§0"
+  - "§a吸血倍率： §d(10)%§A§0"
+  - "§a伤害加成： §d(10)%§A§0"
+GlobalRandomArmorAttributes: # 全局盔甲随机属性列表
+  - "§a减伤： §d(10)%§A§0"

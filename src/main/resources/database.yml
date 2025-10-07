@@ -1,8 +1,19 @@
+database_type: SQLite # 可选值: MySQL, SQLite
+
+# MySQL 配置
 mysql_host: localhost
 mysql_port: 3306
 mysql_user: root
 mysql_password: root
 mysql_database: database
 mysql_table_prefix: forge_
+# 以下两个表用于转换配置
 mysql_draw_table: draw
 mysql_player_table: player
+# 保存锻造数据
+mysql_database_table: database
+
+# SQLite 配置
+sqlite_file: database.db
+sqlite_table_prefix: forge_
+sqlite_database_table: database

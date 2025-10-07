@@ -1,0 +1,26 @@
+Title: §c锻造系统
+Layout:
+  - "RRRYYYGGG"
+  - "RDRYIYGAG"
+  - "RRRYYYGGG"
+ItemMap:
+  R:
+    Material: STAINED_GLASS_PANE
+    Color: Red
+    DisplayName: §c§l请放入锻造图纸
+  Y:
+    Material: STAINED_GLASS_PANE
+    Color: Yellow
+    DisplayName: §e§l请放入锻造宝石
+  G:
+    Material: STAINED_GLASS_PANE
+    Color: Green
+    DisplayName: §a§l点击开中间图标始锻造...
+  D:
+    Flag: 图纸槽
+  I:
+    Flag: 输入槽
+  A:
+    Flag: 锻造
+    Material: ANVIL
+    DisplayName: §a§l点击锻造

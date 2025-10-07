@@ -1,15 +1,16 @@
 package com.github.nullforge.GUI;
 
+import com.github.nullbridge.Inventory.InventoryContext;
 import com.github.nullbridge.Inventory.NullInventory;
 import com.github.nullbridge.annotate.RegisterInventory;
 import com.github.nullbridge.annotate.SlotClick;
-import com.github.nullbridge.item.NullItemStack;
 import com.github.nullforge.Config.Settings;
 import com.github.nullforge.Data.DrawData;
 import com.github.nullforge.Data.DrawManager;
 import com.github.nullforge.Data.PlayerData;
 import com.github.nullforge.NullForge;
 import com.github.nullforge.Utils.ForgeUtils;
+import com.github.nullforge.Utils.RandomUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
@@ -29,20 +30,8 @@ public class ReforgeGUI extends NullInventory {
     private final List<Integer> lockAttributeSlots = new ArrayList<>();
     private final List<Integer> unlockAttributeSlots = new ArrayList<>();
 
-    public Inventory initInventory() {
-        Inventory inventory = createInventory(null, inventorySize, title);
-        for (int i = 0; i < layout.size(); i++) {
-            String line = layout.get(i);
-            for (int j = 0; j < line.length(); j++) {
-                NullItemStack item = getItem(line.charAt(j));
-                inventory.setItem(i * 9 + j, item.getItemStack());
-                if (initialized || item.getFlag().isEmpty()) continue;
-                registerFlag(i * 9 + j, item.getFlag());
-            }
-        }
-        initialized = true;
-        return inventory;
-    }
+    @Override
+    public void initInventory(InventoryContext context) {}
 
     @Override
     public void click(InventoryClickEvent e) {
@@ -81,7 +70,7 @@ public class ReforgeGUI extends NullInventory {
         if (cursorItem.getType() == Material.AIR && clickedItemisForgedItem) {
             // 取出原物品
             // player.sendMessage("取出原物品");
-            clearAttribute(e.getInventory());
+            clearAttribute(e.getInventory(), true);
             setOutputItem(e.getInventory(), null);
             toggleStatus(e.getInventory(), false);
             return;
@@ -91,14 +80,14 @@ public class ReforgeGUI extends NullInventory {
         if (ForgeUtils.isForgedItem(clickedItem) && cursorItemisForgedItem) {
             // 切换物品
             // player.sendMessage("切换物品");
-            resetAttribute(e.getInventory(), cursorItem);
+            resetAttribute(e.getInventory(), cursorItem, true);
         }
     }
 
     @SlotClick(flag = "输出")
     public void onOutputClick(InventoryClickEvent e) {}
 
-    @SlotClick(flag = "词条输入")
+    @SlotClick(flag = "词条展示框")
     public void onAttributeClick(InventoryClickEvent e) {
         int slot = e.getRawSlot();
         ItemStack itemStack = e.getCurrentItem();
@@ -161,11 +150,20 @@ public class ReforgeGUI extends NullInventory {
         if (itemStack == null) {
             return;
         }
+        String drawName = ForgeUtils.getDrawName(itemStack);
+        if (drawName == null) {
+            return;
+        }
         if (unlockAttributeSlots.isEmpty()) {
             return;
         }
 
         Player player = (Player) e.getWhoClicked();
+        DrawData drawData = DrawManager.getDrawDataOfFileName(drawName);
+        if (drawData == null) {
+            player.sendMessage("图纸数据异常，请联系管理员");
+            return;
+        }
         // 检查是否放入了正确的重铸石
         ItemStack reforgeStone = getInventoryItem(e.getInventory(), "重铸石");
         if (!ForgeUtils.isReforgeStone(reforgeStone)) {
@@ -177,37 +175,46 @@ public class ReforgeGUI extends NullInventory {
         ItemMeta itemMeta = previewItemStack.getItemMeta();
         List<String> lore = itemMeta.getLore();
         String level = ForgeUtils.extractLevel(itemStack);
-        String attributeRange = Settings.I.Forge_Attrib.get(level);
-
+        Settings.Level levelObj = Settings.I.Levels.get(level);
 
         ItemStack luckyStone = getInventoryItem(e.getInventory(), "幸运石");
         int addChance = ForgeUtils.getLuckyStonePercentage(luckyStone);
 
         int playerLevel = PlayerData.pMap.get(player.getName()).getLevel();
-        Map<String, Number> wave = ForgeUtils.calculateWave(attributeRange, addChance, playerLevel, NullForge.rd);
+        Map<String, Number> wave = ForgeUtils.calculateWave(levelObj.AttributeRange, addChance, playerLevel, NullForge.random);
         int percent = wave.get("percent").intValue();
-        for (int i = 0; i < unlockAttributeSlots.size(); i++) {
-            ItemStack attributeItem = e.getInventory().getItem(unlockAttributeSlots.get(i));
-            String flag = NullForge.getItemManager().getStringNBT(attributeItem, "Flag");
-            // player.sendMessage("词条 => " + flag);
-            String attribute = ForgeUtils.applyReforge(flag, percent);
-            lore = ForgeUtils.replaceAttribute(lore, attribute);
-        }
-        String ratingText = ForgeUtils.getRatingText(wave.get("rating").intValue());
-        for (int i = 0; i < lore.size(); i++) {
-            if (lore.get(i).startsWith(Settings.I.Attrib_Rating_Text)) {
-                lore.set(i, ratingText);
+        int randomCount = RandomUtil.getRandomAttributeCount(level);
+        NullForge.debug("随机词条数量: " + randomCount);
+        // 如果随机词条数量大于锁定的词条数量
+        if (randomCount > lockAttributeSlots.size()) {
+            // return;
+            List<String> newAttributes = RandomUtil.getRandomAttributes(randomCount - lockAttributeSlots.size(), drawData.getType(), drawData.getRandomAttributes());
+            NullForge.debug("新的随机词条: " + newAttributes);
+            for (String attribute : newAttributes) {
+                String newAttribute = ForgeUtils.apply(attribute, percent);
+                lore = ForgeUtils.replaceAttribute(lore, newAttribute);
             }
+            itemMeta.setLore(lore);
+            previewItemStack.setItemMeta(itemMeta);
+            // 重新初始化词条展示框
+            resetAttribute(e.getInventory(), previewItemStack, false);
         }
-        itemMeta.setLore(lore);
-        previewItemStack.setItemMeta(itemMeta);
+        // String ratingText = ForgeUtils.getRatingText(wave.get("rating").intValue());
+        // for (int i = 0; i < lore.size(); i++) {
+        //     if (lore.get(i).startsWith(Settings.I.Attrib_Rating_Text)) {
+        //         lore.set(i, ratingText);
+        //     }
+        // }
+        // itemMeta.setLore(lore);
+        // previewItemStack.setItemMeta(itemMeta);
         setOutputItem(e.getInventory(), previewItemStack);
+        // 重新初始化词条展示框
+        // resetAttribute(e.getInventory(), previewItemStack);
 
         // 确认和取消增加附魔效果
         toggleStatus(e.getInventory(), true);
 
         // 减少重铸石和幸运石数量
-
         if (reforgeStone.getAmount() > 1) {
             reforgeStone.setAmount(reforgeStone.getAmount() - 1);
         } else {
@@ -243,7 +250,7 @@ public class ReforgeGUI extends NullInventory {
         }
     }
 
-    // 初始化词条输入框
+    // 初始化词条展示框
     private void initAttribute(Inventory inventory, ItemStack itemStack) {
         String drawName = NullForge.getItemManager().getStringNBT(itemStack, "DrawName");
 
@@ -258,26 +265,30 @@ public class ReforgeGUI extends NullInventory {
         }
 
         String level = ForgeUtils.extractLevel(itemStack);
-        String attributeRange = Settings.I.Forge_Attrib.get(level);
-        int max = Integer.parseInt(attributeRange.split(" => ")[1]);
+        Settings.Level levelObj = Settings.I.Levels.get(level);
+        int max = levelObj.AttributeRange.get(1);
 
-        List<String> reforgeAttributes = drawData.getReforgeAttributes();
-        List<Integer> slots = this.flagSlotsMap.get("词条输入");
-        Bukkit.getLogger().info(slots.toString());
-        Iterator<String> iterator = reforgeAttributes.iterator();
+        List<String> randomAttributes = ForgeUtils.getRandomAttributes(itemStack);
+        List<Integer> slots = this.flagSlotsMap.get("词条展示框");
+        NullForge.debug(slots.toString());
+        Iterator<String> iterator = randomAttributes.iterator();
         Map<String, Object> nbt = new HashMap<>();
-
+        // List<String> sameAttributes = ForgeUtils.getRandomAttributes(itemStack);
 
         Bukkit.getScheduler().runTask(NullForge.INSTANCE, () -> {
             for (int slot : slots) {
                 if (!iterator.hasNext()) {
                     break;
                 }
+                ItemStack originalItem = inventory.getItem(slot);
+                if (originalItem != null && originalItem.getType() != Material.AIR) {
+                    continue;
+                }
                 String next = iterator.next();
                 nbt.put("Flag", next);
                 ItemStack item = NullForge.getItemManager().addItemNBT(new ItemStack(Material.PAPER), nbt);
                 ItemMeta itemMeta = item.getItemMeta();
-                itemMeta.setDisplayName(ForgeUtils.applyReforge(next, max));
+                itemMeta.setDisplayName(ForgeUtils.apply(next, max));
                 item.setItemMeta(itemMeta);
                 inventory.setItem(slot, item);
                 unlockAttributeSlots.add(slot);
@@ -285,9 +296,9 @@ public class ReforgeGUI extends NullInventory {
         });
     }
 
-    // 清空词条输入框
-    private void clearAttribute(Inventory inventory) {
-        List<Integer> slots = this.flagSlotsMap.get("词条输入");
+    // 清空词条展示框
+    private void clearAttribute(Inventory inventory, boolean all) {
+        List<Integer> slots = all ? this.flagSlotsMap.get("词条展示框") : this.unlockAttributeSlots;
         Bukkit.getScheduler().runTask(NullForge.INSTANCE, () -> {
             for (int slot : slots) {
                 inventory.setItem(slot, null);
@@ -295,8 +306,9 @@ public class ReforgeGUI extends NullInventory {
         });
     }
 
-    public void resetAttribute(Inventory inventory, ItemStack itemStack) {
-        clearAttribute(inventory);
+    // 重置词条展示框
+    private void resetAttribute(Inventory inventory, ItemStack itemStack, boolean all) {
+        clearAttribute(inventory, all);
         initAttribute(inventory, itemStack);
     }
 

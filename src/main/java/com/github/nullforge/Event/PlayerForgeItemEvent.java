@@ -12,11 +12,11 @@ import java.util.Map;
 public class PlayerForgeItemEvent extends Event {
     private static final HandlerList handlers = new HandlerList();
     private final Player player;
-    private List<ItemStack> items;
-    private Map<String, Integer> qualityInfo;
-    private DrawData draw;
-    private boolean isFinalForge; // 标记是否是最后一次锻造
-    private double totalExp; // 总经验
+    private final List<ItemStack> items;
+    private final Map<String, Integer> qualityInfo;
+    private final DrawData draw;
+    private final boolean isFinalForge; // 标记是否是最后一次锻造
+    private final double totalExp; // 总经验
 
     public PlayerForgeItemEvent(Player player, DrawData draw, List<ItemStack> items, Map<String, Integer> qualityInfo, double totalExp, boolean isFinalForge) {
         this.player = player;

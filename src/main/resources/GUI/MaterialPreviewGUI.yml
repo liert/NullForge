@@ -1,0 +1,18 @@
+Title: "§c§l图纸材料预览: <draw>"
+Layout:
+  - "         "
+  - "         "
+  - "         "
+  - "         "
+  - "         "
+  - "        G"
+ItemMap:
+  G:
+    Flag: 一键获取
+    Material: NETHER_STAR
+    DisplayName: §6§l一键获取材料
+    Permission: nullforge.admin
+    Lore:
+      - "§7点击获取本页展示的所有锻造材料"
+  " ":
+    Flag: 材料槽

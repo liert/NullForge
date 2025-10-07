@@ -205,7 +205,7 @@ public class OnAdminCommands implements CommandExecutor {
         }
 
         // 随机生成品质
-        Map<String, Float> forgeChance = Settings.I.Forge_Chance;
+        Map<String, Float> forgeChance = Settings.Level.getChance();
         String randomQuality = RandomUtil.probabString(null, null, forgeChance);
 
         // 锻造装备
@@ -279,26 +279,34 @@ public class OnAdminCommands implements CommandExecutor {
         progressBar.append("§b]");
         return progressBar.toString();
     }
-    // 锻造逻辑方法
-    private ItemStack forgeItemWithQuality(Player player, DrawData drawData, String quality, boolean isCommand) {
-        // 获取配置中的锻造品质概率、品质描述文本和品质对应的属性范围
-        Map<String, Float> forgeChance = Settings.I.Forge_Chance;
-        Map<String, String> attribLevelText = Settings.I.Attrib_Level_Text;
-        Map<String, String> forgeAttrib = Settings.I.Forge_Attrib;
 
-        // 检查指定的品质是否有效
-        if (!forgeChance.containsKey(quality)) {
-            return null; // 如果指定的品质无效，返回 null
+    // 锻造逻辑方法
+    private ItemStack forgeItemWithQuality(Player player, DrawData drawData, String level, boolean isCommand) {
+        // 获取配置中的锻造品质概率、品质描述文本和品质对应的属性范围
+        if (!Settings.I.Levels.containsKey(level)) {
+            return null;
         }
 
+        Settings.Level levelObj = Settings.I.Levels.get(level);
+
+        // Map<String, Float> forgeChance = Settings.I.Forge_Chance;
+        // Map<String, String> attribLevelText = Settings.I.Attrib_Level_Text;
+
+        // Map<String, String> forgeAttrib = Settings.I.Forge_Attrib;
+
+        // 检查指定的品质是否有效
+        // if (!forgeChance.containsKey(level)) {
+        //     return null; // 如果指定的品质无效，返回 null
+        // }
+
         // 获取品质描述和属性范围
-        String qualityText = attribLevelText.get(quality); // 品质描述文本
-        String attributeRange = forgeAttrib.get(quality); // 品质对应的属性范围
+        // String qualityText = ; // 品质描述文本
+        // String attributeRange = forgeAttrib.get(level); // 品质对应的属性范围
 
         // 解析属性范围并生成强度值
-        String[] rangeParts = attributeRange.split(" => "); // 分割范围，例如 "50 => 70"
-        int min = Integer.parseInt(rangeParts[0]); // 最小值
-        int max = Integer.parseInt(rangeParts[1]); // 最大值
+        // String[] rangeParts = attributeRange.split(" => "); // 分割范围，例如 "50 => 70"
+        int min = levelObj.AttributeRange.get(0); // 最小值
+        int max = levelObj.AttributeRange.get(1); // 最大值
 
         int attributeValue;
         if (isCommand) {
@@ -353,7 +361,7 @@ public class OnAdminCommands implements CommandExecutor {
         }
 
         // 添加品质信息和锻造者信息
-        adjustedAttrib.add(qualityText); // 添加品质描述
+        adjustedAttrib.add(levelObj.Lore); // 添加品质描述
         adjustedAttrib.add(Settings.I.Attrib_Rating_Text + strengthBar); // 添加强度条
         adjustedAttrib.add(Settings.I.ForgeOwner.replace("<player>", player.getName())); // 添加锻造者信息
         SimpleDateFormat sdf = new SimpleDateFormat(Settings.I.ForgeDateFormat);
